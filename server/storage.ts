@@ -11,6 +11,7 @@ export interface IStorage {
   getStudentByName(name: string): Promise<Student | undefined>;
   createStudent(student: InsertStudent): Promise<Student>;
   getStudents(): Promise<Student[]>;
+  updateStudentExtraPoints(id: number, points: number): Promise<Student>;
 
   // Activities
   getActivityByName(name: string): Promise<Activity | undefined>;
@@ -57,6 +58,14 @@ export class DatabaseStorage implements IStorage {
 
   async getStudents(): Promise<Student[]> {
     return await db.select().from(students);
+  }
+
+  async updateStudentExtraPoints(id: number, points: number): Promise<Student> {
+    const [updated] = await db.update(students)
+      .set({ extraPoints: points })
+      .where(eq(students.id, id))
+      .returning();
+    return updated;
   }
 
   async getActivityByName(name: string): Promise<Activity | undefined> {

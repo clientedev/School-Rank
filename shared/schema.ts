@@ -5,6 +5,7 @@ import { z } from "zod";
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  extraPoints: real("extra_points").default(0).notNull(),
 });
 
 export const activities = pgTable("activities", {

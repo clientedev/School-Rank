@@ -23,7 +23,8 @@ export async function registerRoutes(
         studentMap.set(s.id, {
           studentId: s.id,
           studentName: s.name,
-          totalPoints: 0,
+          extraPoints: s.extraPoints || 0,
+          totalPoints: s.extraPoints || 0,
           activitiesCount: 0,
           grades: []
         });
@@ -204,6 +205,20 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Grade update error:", err);
       res.status(500).json({ message: "Failed to update grade" });
+    }
+  });
+
+  app.post("/api/students/:id/points", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const { points } = req.body;
+      const student = await db.select().from(students).where(eq(students.id, id)).then(r => r[0]);
+      if (!student) return res.status(404).json({ message: "Student not found" });
+      
+      const updated = await storage.updateStudentExtraPoints(id, (student.extraPoints || 0) + points);
+      res.json(updated);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update points" });
     }
   });
 

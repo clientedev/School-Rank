@@ -29,17 +29,10 @@ interface StudentActionModalProps {
 
 export function StudentActionModal({ student, activities, isOpen, onClose }: StudentActionModalProps) {
   const [amount, setAmount] = useState<string>("1");
-  const [selectedActivityId, setSelectedActivityId] = useState<string>(activities[0]?.id.toString() || "");
-  const [reason, setReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleAction = async (type: 'add' | 'remove') => {
-    if (!selectedActivityId) {
-      toast({ title: "Selecione uma atividade", variant: "destructive" });
-      return;
-    }
-
     const valueChange = parseFloat(amount);
     if (isNaN(valueChange) || valueChange <= 0) {
       toast({ title: "Valor inválido", variant: "destructive" });
@@ -48,31 +41,19 @@ export function StudentActionModal({ student, activities, isOpen, onClose }: Stu
 
     setIsSubmitting(true);
     try {
-      const activityId = parseInt(selectedActivityId);
-      const existingGrade = student.grades.find(g => g.activityId === activityId);
-      const currentGrade = existingGrade?.value || 0;
-      const newValue = type === 'add' ? currentGrade + valueChange : currentGrade - valueChange;
-      
-      const gradeId = existingGrade?.gradeId || 0;
-
-      const res = await fetch(api.grades.update.path.replace(':id', gradeId.toString()), {
-        method: 'PUT',
+      const points = type === 'add' ? valueChange : -valueChange;
+      const res = await fetch(`/api/students/${student.studentId}/points`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          value: newValue,
-          studentId: student.studentId,
-          activityId,
-          reason: reason || (type === 'add' ? 'Atribuição de pontos' : 'Penalidade')
-        })
+        body: JSON.stringify({ points })
       });
 
       if (res.ok) {
         queryClient.invalidateQueries({ queryKey: [api.dashboard.path] });
         toast({ 
           title: type === 'add' ? "Pontos atribuídos!" : "Penalidade aplicada!",
-          description: `${type === 'add' ? '+' : '-'}${valueChange} pontos para ${student.studentName}`
+          description: `${type === 'add' ? '+' : '-'}${valueChange} pontos extras para ${student.studentName}`
         });
-        setReason("");
         onClose();
       } else {
         throw new Error();
@@ -92,25 +73,11 @@ export function StudentActionModal({ student, activities, isOpen, onClose }: Stu
             Ações: {student.studentName}
           </DialogTitle>
           <DialogDescription>
-            Atribua pontos ou aplique penalidades vinculadas a uma atividade.
+            Atribua ou remova pontos diretamente do total do aluno.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="activity">Atividade</Label>
-            <select
-              id="activity"
-              className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              value={selectedActivityId}
-              onChange={(e) => setSelectedActivityId(e.target.value)}
-            >
-              {activities.map(act => (
-                <option key={act.id} value={act.id}>{act.name}</option>
-              ))}
-            </select>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="amount">Quantidade de Pontos</Label>
             <Input
@@ -119,17 +86,6 @@ export function StudentActionModal({ student, activities, isOpen, onClose }: Stu
               step="0.5"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="h-11 rounded-xl"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="reason">Motivo (Opcional)</Label>
-            <Input
-              id="reason"
-              placeholder="Ex: Bom comportamento, atraso..."
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
               className="h-11 rounded-xl"
             />
           </div>
@@ -144,7 +100,7 @@ export function StudentActionModal({ student, activities, isOpen, onClose }: Stu
             disabled={isSubmitting}
           >
             <Minus className="w-5 h-5 mr-2" />
-            Penalidade
+            Remover
           </Button>
           <Button
             type="button"
@@ -153,7 +109,7 @@ export function StudentActionModal({ student, activities, isOpen, onClose }: Stu
             disabled={isSubmitting}
           >
             <Plus className="w-5 h-5 mr-2" />
-            Atribuição
+            Adicionar
           </Button>
         </DialogFooter>
       </DialogContent>
