@@ -32,20 +32,44 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
-            Minha Turma - Acesso
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
+      <Card className="w-full max-w-md shadow-xl border-t-4 border-t-primary">
+        <CardHeader className="space-y-1 pb-8">
+          <div className="flex justify-center mb-4">
+            <div className="bg-primary/10 p-3 rounded-full">
+              <span className="text-3xl">👨‍🏫</span>
+            </div>
+          </div>
+          <CardTitle className="text-3xl font-bold text-center tracking-tight">
+            Minha Turma
           </CardTitle>
+          <p className="text-center text-muted-foreground">Gestão de notas e desempenho</p>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Input placeholder="Usuário/Email" value={email} onChange={e => setEmail(e.target.value)} />
-          <Input type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} />
-          <Button className="w-full" onClick={handleLogin}>
-            Entrar
+          <div className="space-y-2">
+            <Input 
+              placeholder="Usuário ou Email" 
+              value={email} 
+              onChange={e => setEmail(e.target.value)}
+              className="h-12 text-base"
+            />
+          </div>
+          <div className="space-y-2">
+            <Input 
+              type="password" 
+              placeholder="Senha" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)}
+              className="h-12 text-base"
+            />
+          </div>
+          <Button className="w-full h-12 text-lg font-semibold mt-2 shadow-lg hover:shadow-primary/20 transition-all" onClick={handleLogin}>
+            Acessar Sistema
           </Button>
         </CardContent>
+        <div className="px-6 pb-6 text-center">
+          <p className="text-xs text-muted-foreground uppercase tracking-widest">Acesso restrito a professores</p>
+        </div>
       </Card>
     </div>
   );
@@ -70,17 +94,31 @@ function AdminPanel() {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="w-full max-w-4xl mx-auto border-dashed bg-muted/30">
       <CardHeader>
-        <CardTitle>Cadastrar Novo Professor</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <span className="bg-primary text-primary-foreground p-1 rounded text-sm">ADMIN</span>
+          Cadastrar Novo Professor
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <Input placeholder="Nome do Professor" value={name} onChange={e => setName(e.target.value)} />
-        <Input placeholder="Email/Usuário" value={email} onChange={e => setEmail(e.target.value)} />
-        <Input type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} />
-        <Button className="w-full" onClick={handleCreateTeacher}>
-          Cadastrar Professor
-        </Button>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase text-muted-foreground">Nome Completo</label>
+            <Input placeholder="Ex: João Silva" value={name} onChange={e => setName(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase text-muted-foreground">Email/Usuário</label>
+            <Input placeholder="usuario@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase text-muted-foreground">Senha Provisória</label>
+            <Input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+          </div>
+          <Button className="w-full" onClick={handleCreateTeacher}>
+            Cadastrar Professor
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
