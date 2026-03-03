@@ -8,7 +8,10 @@ export let pool: any = null;
 export let db: any = null;
 
 if (process.env.DATABASE_URL) {
-  pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+  });
   db = drizzle(pool, { schema });
 } else {
   if (process.env.NODE_ENV === "production") {
