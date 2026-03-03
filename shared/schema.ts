@@ -3,10 +3,18 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { sql } from "drizzle-orm";
 
+export const teachers = pgTable("teachers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  password: text("password").notNull(),
+});
+
 export const classes = pgTable("classes", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   password: text("password").notNull(),
+  teacherId: integer("teacher_id").references(() => teachers.id),
 });
 
 export const students = pgTable("students", {
@@ -47,18 +55,21 @@ export const settings = pgTable("settings", {
   classId: integer("class_id").references(() => classes.id),
 });
 
+export const insertTeacherSchema = createInsertSchema(teachers).omit({ id: true });
 export const insertClassSchema = createInsertSchema(classes).omit({ id: true });
 export const insertStudentSchema = createInsertSchema(students).omit({ id: true });
 export const insertActivitySchema = createInsertSchema(activities).omit({ id: true });
 export const insertGradeSchema = createInsertSchema(grades).omit({ id: true });
 export const insertSettingSchema = createInsertSchema(settings).omit({ id: true });
 
+export type Teacher = typeof teachers.$inferSelect;
 export type Class = typeof classes.$inferSelect;
 export type Student = typeof students.$inferSelect;
 export type Activity = typeof activities.$inferSelect;
 export type Grade = typeof grades.$inferSelect;
 export type Setting = typeof settings.$inferSelect;
 
+export type InsertTeacher = z.infer<typeof insertTeacherSchema>;
 export type InsertClass = z.infer<typeof insertClassSchema>;
 export type InsertStudent = z.infer<typeof insertStudentSchema>;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;

@@ -24,26 +24,41 @@ export async function registerRoutes(
   }));
 
   app.post("/api/login", async (req, res) => {
-    const { className, password } = req.body;
-    const c = await storage.getClassByName(className);
-    if (!c || c.password !== password) {
-      return res.status(401).json({ message: "Turma ou senha inválida" });
+    const { email, password } = req.body;
+    const t = await storage.getTeacherByEmail(email);
+    if (!t || t.password !== password) {
+      return res.status(401).json({ message: "Email ou senha inválida" });
     }
-    (req.session as any).classId = c.id;
-    res.json({ success: true, classId: c.id });
+    (req.session as any).teacherId = t.id;
+    res.json({ success: true, teacherId: t.id });
+  });
+
+  app.post("/api/register", async (req, res) => {
+    const { name, email, password } = req.body;
+    const existing = await storage.getTeacherByEmail(email);
+    if (existing) return res.status(400).json({ message: "Email já cadastrado" });
+    const created = await storage.createTeacher({ name, email, password });
+    (req.session as any).teacherId = created.id;
+    res.json(created);
+  });
+
+  app.get("/api/classes", async (req, res) => {
+    const teacherId = (req.session as any).teacherId;
+    if (!teacherId) return res.status(401).json({ message: "Não autorizado" });
+    const classes = await storage.getClasses(teacherId);
+    res.json(classes);
   });
 
   app.post("/api/classes", async (req, res) => {
+    const teacherId = (req.session as any).teacherId;
+    if (!teacherId) return res.status(401).json({ message: "Não autorizado" });
     const { name, password } = req.body;
-    const existing = await storage.getClassByName(name);
-    if (existing) return res.status(400).json({ message: "Turma já existe" });
-    const created = await storage.createClass({ name, password });
-    (req.session as any).classId = created.id;
+    const created = await storage.createClass({ name, password, teacherId });
     res.json(created);
   });
 
   const requireAuth = (req: any, res: any, next: any) => {
-    if (!req.session.classId) return res.status(401).json({ message: "Não autorizado" });
+    if (!req.session.teacherId) return res.status(401).json({ message: "Não autorizado" });
     next();
   };
 

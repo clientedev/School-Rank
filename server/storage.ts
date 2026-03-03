@@ -1,17 +1,22 @@
 import { db } from "./db";
 import { 
-  students, activities, grades, settings, studentLogs, classes,
-  type Student, type Activity, type Grade, type Class,
-  type InsertStudent, type InsertActivity, type InsertGrade, type InsertClass 
+  students, activities, grades, settings, studentLogs, classes, teachers,
+  type Student, type Activity, type Grade, type Class, type Teacher,
+  type InsertStudent, type InsertActivity, type InsertGrade, type InsertClass, type InsertTeacher 
 } from "@shared/schema";
 import { eq, and } from "drizzle-orm";
 
 export interface IStorage {
+  // Teachers
+  createTeacher(t: InsertTeacher): Promise<Teacher>;
+  getTeacher(id: number): Promise<Teacher | undefined>;
+  getTeacherByEmail(email: string): Promise<Teacher | undefined>;
+
   // Classes
   createClass(c: InsertClass): Promise<Class>;
   getClass(id: number): Promise<Class | undefined>;
   getClassByName(name: string): Promise<Class | undefined>;
-  getClasses(): Promise<Class[]>;
+  getClasses(teacherId?: number): Promise<Class[]>;
 
   // Students
   getStudentByName(name: string, classId: number): Promise<Student | undefined>;
@@ -39,6 +44,21 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  async createTeacher(t: InsertTeacher): Promise<Teacher> {
+    const [created] = await db.insert(teachers).values(t).returning();
+    return created;
+  }
+
+  async getTeacher(id: number): Promise<Teacher | undefined> {
+    const [t] = await db.select().from(teachers).where(eq(teachers.id, id));
+    return t;
+  }
+
+  async getTeacherByEmail(email: string): Promise<Teacher | undefined> {
+    const [t] = await db.select().from(teachers).where(eq(teachers.email, email));
+    return t;
+  }
+
   async createClass(c: InsertClass): Promise<Class> {
     const [created] = await db.insert(classes).values(c).returning();
     return created;
@@ -54,7 +74,10 @@ export class DatabaseStorage implements IStorage {
     return c;
   }
 
-  async getClasses(): Promise<Class[]> {
+  async getClasses(teacherId?: number): Promise<Class[]> {
+    if (teacherId) {
+      return await db.select().from(classes).where(eq(classes.teacherId, teacherId));
+    }
     return await db.select().from(classes);
   }
 
