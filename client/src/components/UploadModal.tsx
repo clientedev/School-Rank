@@ -140,29 +140,59 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
         
         <div className="p-6">
           {!file ? (
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`
-                border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200
-                ${isDragging ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-border hover:border-primary/50 hover:bg-muted/50'}
-              `}
-            >
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                accept=".xlsx, .xls" 
-                className="hidden" 
-              />
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                <UploadCloud className="w-8 h-8" />
+            <div className="space-y-4">
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`
+                  border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200
+                  ${isDragging ? 'border-primary bg-primary/5 scale-[1.02]' : 'border-border hover:border-primary/50 hover:bg-muted/50'}
+                `}
+              >
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  accept=".xlsx, .xls" 
+                  className="hidden" 
+                />
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  <UploadCloud className="w-8 h-8" />
+                </div>
+                <div className="text-center">
+                  <p className="text-base font-semibold text-foreground">Clique ou arraste um arquivo</p>
+                  <p className="text-sm text-muted-foreground mt-1">Suporta arquivos .xlsx e .xls</p>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-base font-semibold text-foreground">Clique ou arraste um arquivo</p>
-                <p className="text-sm text-muted-foreground mt-1">Suporta arquivos .xlsx e .xls</p>
+              
+              <div className="bg-muted/50 rounded-xl p-4 border border-border">
+                <p className="text-sm font-semibold mb-2 flex items-center gap-2">
+                  <FileSpreadsheet className="w-4 h-4 text-primary" />
+                  Modelo de Planilha:
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="text-xs w-full border-collapse border border-border bg-background">
+                    <thead>
+                      <tr>
+                        <th className="border border-border p-1 bg-muted">Nome do Aluno</th>
+                        <th className="border border-border p-1 bg-muted">Atividade 1</th>
+                        <th className="border border-border p-1 bg-muted">Atividade 2</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border border-border p-1 italic text-muted-foreground">Nome do Aluno...</td>
+                        <td className="border border-border p-1 italic text-muted-foreground">Nota...</td>
+                        <td className="border border-border p-1 italic text-muted-foreground">Nota...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-2 italic">
+                  * Você pode adicionar quantas colunas de atividades quiser após o nome.
+                </p>
               </div>
             </div>
           ) : (
