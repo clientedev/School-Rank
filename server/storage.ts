@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { 
-  students, activities, grades,
+  students, activities, grades, settings,
   type Student, type Activity, type Grade,
   type InsertStudent, type InsertActivity, type InsertGrade 
 } from "@shared/schema";
