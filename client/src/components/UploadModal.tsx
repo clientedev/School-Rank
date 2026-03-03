@@ -62,25 +62,49 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
       const worksheet = workbook.Sheets[sheetName];
       const json = XLSX.utils.sheet_to_json(worksheet) as any[];
 
-      const formattedData = json.map(row => {
-        const studentName = row['Nome do Aluno'] || row['Aluno'] || row['Nome'] || row['Name'];
-        const activityName = row['Atividade'] || row['Activity'];
-        let valueRaw = row['Nota'] || row['Grade'] || row['Value'];
+      const formattedData: any[] = [];
+      const columnNames = Object.keys(json[0] || {});
+      const studentNameKey = columnNames.find(k => 
+        ['Nome do Aluno', 'Aluno', 'Nome', 'Name', 'Student'].includes(k)
+      );
 
-        let value = 0;
-        if (typeof valueRaw === 'string') {
-          value = parseFloat(valueRaw.replace(',', '.'));
-        } else if (typeof valueRaw === 'number') {
-          value = valueRaw;
-        }
+      if (!studentNameKey) {
+        toast({
+          title: "Erro de formatação",
+          description: "O Excel deve conter uma coluna com o nome do aluno.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-        return { studentName, activityName, value };
-      }).filter(item => item.studentName && item.activityName && !isNaN(item.value));
+      // Atividades são todas as outras colunas
+      const activityKeys = columnNames.filter(k => k !== studentNameKey);
+
+      json.forEach(row => {
+        const studentName = row[studentNameKey];
+        if (!studentName) return;
+
+        activityKeys.forEach(activityName => {
+          let valueRaw = row[activityName];
+          if (valueRaw === undefined || valueRaw === null || valueRaw === '') return;
+
+          let value = 0;
+          if (typeof valueRaw === 'string') {
+            value = parseFloat(valueRaw.replace(',', '.'));
+          } else if (typeof valueRaw === 'number') {
+            value = valueRaw;
+          }
+
+          if (!isNaN(value)) {
+            formattedData.push({ studentName, activityName, value });
+          }
+        });
+      });
 
       if (formattedData.length === 0) {
         toast({
-          title: "Erro de formatação",
-          description: "O Excel não contém as colunas necessárias: 'Nome do Aluno', 'Atividade', 'Nota'.",
+          title: "Nenhum dado encontrado",
+          description: "Não foram encontradas notas para importar.",
           variant: "destructive"
         });
         return;

@@ -173,7 +173,7 @@ export default function Dashboard() {
                     </li>
                     <li className="flex items-start gap-3 text-sm text-muted-foreground">
                       <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5" />
-                      O formato ideal da planilha é "Nome do Aluno | Atividade | Nota".
+                      O formato da planilha deve ter uma coluna para o nome do aluno e as outras colunas para as atividades com suas respectivas notas.
                     </li>
                   </ul>
                 </div>
