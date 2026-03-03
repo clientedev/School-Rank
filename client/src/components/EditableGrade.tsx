@@ -30,8 +30,6 @@ export function EditableGrade({ gradeId, value, studentId, activityId }: Editabl
   const handleSave = () => {
     setIsEditing(false);
     
-    // If it's empty or dash, we might want to delete, but prompt says update. 
-    // Let's just ignore if they revert to dash or empty
     if (currentValue === "-" || currentValue === "") {
       setCurrentValue(value !== undefined ? String(value) : "-");
       return;
@@ -39,11 +37,13 @@ export function EditableGrade({ gradeId, value, studentId, activityId }: Editabl
 
     const numValue = parseFloat(currentValue.replace(',', '.'));
     
-    // Only update if it's a valid number, changed, and we have an existing gradeId
-    // Note: The prompt doesn't explicitly ask for creation of single grades via UI, 
-    // only updating existing ones after upload.
-    if (!isNaN(numValue) && numValue !== value && gradeId) {
-      updateMutation.mutate({ id: gradeId, value: numValue });
+    if (!isNaN(numValue) && numValue !== value) {
+      updateMutation.mutate({ 
+        id: gradeId || 0, // 0 will be ignored if we create
+        value: numValue,
+        studentId: !gradeId ? studentId : undefined,
+        activityId: !gradeId ? activityId : undefined
+      });
     } else {
       setCurrentValue(value !== undefined ? String(value) : "-");
     }
@@ -66,7 +66,7 @@ export function EditableGrade({ gradeId, value, studentId, activityId }: Editabl
     );
   }
 
-  if (isEditing && gradeId) {
+  if (isEditing) {
     return (
       <input
         ref={inputRef}
@@ -82,13 +82,14 @@ export function EditableGrade({ gradeId, value, studentId, activityId }: Editabl
 
   return (
     <div 
-      onClick={() => gradeId && setIsEditing(true)}
+      onClick={() => setIsEditing(true)}
       className={`
         px-3 py-1.5 rounded-md text-sm font-medium transition-colors text-center
-        ${gradeId ? 'cursor-pointer hover:bg-muted cursor-text' : 'text-muted-foreground/50'}
+        cursor-pointer hover:bg-muted cursor-text
         ${value !== undefined && value < 6 ? 'text-destructive' : ''} 
+        ${value === undefined ? 'text-muted-foreground/30' : ''}
       `}
-      title={gradeId ? "Clique para editar" : "Sem nota"}
+      title="Clique para editar"
     >
       {value !== undefined ? Number(value).toFixed(1) : "-"}
     </div>

@@ -83,7 +83,11 @@ export const api = {
     update: {
       method: 'PUT' as const,
       path: '/api/grades/:id' as const,
-      input: z.object({ value: z.number() }),
+      input: z.object({ 
+        value: z.number(),
+        studentId: z.number().optional(),
+        activityId: z.number().optional()
+      }),
       responses: {
         200: z.object({
           id: z.number(),

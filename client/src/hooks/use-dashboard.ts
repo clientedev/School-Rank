@@ -53,9 +53,9 @@ export function useBatchUploadGrades() {
 export function useUpdateGrade() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, value }: { id: number; value: number }) => {
+    mutationFn: async ({ id, value, studentId, activityId }: { id: number; value: number; studentId?: number; activityId?: number }) => {
       const url = buildUrl(api.grades.update.path, { id });
-      const validated = api.grades.update.input.parse({ value });
+      const validated = api.grades.update.input.parse({ value, studentId, activityId });
       
       const res = await fetch(url, {
         method: api.grades.update.method,

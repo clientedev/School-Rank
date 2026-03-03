@@ -176,8 +176,23 @@ export async function registerRoutes(
   app.put(api.grades.update.path, async (req, res) => {
     try {
       const id = Number(req.params.id);
-      const { value } = api.grades.update.input.parse(req.body);
+      const { value, studentId, activityId } = api.grades.update.input.parse(req.body);
       
+      if (id === 0 && studentId && activityId) {
+        // Create new grade if it doesn't exist
+        const existing = await storage.getGrade(studentId, activityId);
+        if (existing) {
+          const updated = await storage.updateGrade(existing.id, value);
+          return res.json(updated);
+        }
+        const created = await storage.createGrade({
+          studentId,
+          activityId,
+          value
+        });
+        return res.json(created);
+      }
+
       const existing = await storage.getGradeById(id);
       if (!existing) {
         return res.status(404).json({ message: "Grade not found" });

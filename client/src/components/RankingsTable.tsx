@@ -123,7 +123,7 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                       <td key={act.id} className="px-6 py-4 text-center">
                         {readonly ? (
                           <span className="font-medium text-sm">
-                            {grade?.value?.toFixed(1) || "-"}
+                            {grade?.value !== undefined ? grade.value.toFixed(1) : "-"}
                           </span>
                         ) : (
                           <EditableGrade 
