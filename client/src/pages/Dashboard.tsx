@@ -18,6 +18,13 @@ export default function Dashboard() {
   const { data, isLoading, error } = useDashboard();
   const { toast } = useToast();
 
+  const classId = localStorage.getItem("classId");
+
+  if (!classId) {
+    window.location.href = "/";
+    return null;
+  }
+
   const handleUpdateName = async () => {
     try {
       const res = await fetch(api.settings.updateClassName.path, {

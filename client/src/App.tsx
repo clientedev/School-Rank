@@ -145,6 +145,10 @@ function ClassSelector({ teacherId, onSelect, onLogout }: { teacherId: number, o
   const isAdmin = teacherId === -1;
 
   const handleCreateClass = async () => {
+    if (!newClassName.trim()) {
+      toast({ title: "Erro", description: "O nome da turma não pode estar vazio", variant: "destructive" });
+      return;
+    }
     try {
       await apiRequest("POST", "/api/classes", { name: newClassName, password: "default-password" });
       setNewClassName("");
