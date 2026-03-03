@@ -211,14 +211,25 @@ export async function registerRoutes(
   app.post("/api/students/:id/points", async (req, res) => {
     try {
       const id = Number(req.params.id);
-      const { points } = req.body;
-      const student = await db.select().from(students).where(eq(students.id, id)).then(r => r[0]);
+      const { points, reason } = req.body;
+      const studentsList = await storage.getStudents();
+      const student = studentsList.find(s => s.id === id);
       if (!student) return res.status(404).json({ message: "Student not found" });
       
-      const updated = await storage.updateStudentExtraPoints(id, (student.extraPoints || 0) + points);
+      const updated = await storage.updateStudentExtraPoints(id, (student.extraPoints || 0) + points, reason || "Ajuste de pontos");
       res.json(updated);
     } catch (err) {
       res.status(500).json({ message: "Failed to update points" });
+    }
+  });
+
+  app.get("/api/students/:id/logs", async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const logs = await storage.getStudentLogs(id);
+      res.json(logs);
+    } catch (err) {
+      res.status(500).json({ message: "Failed to fetch student logs" });
     }
   });
 

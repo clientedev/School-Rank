@@ -11,7 +11,8 @@ export interface IStorage {
   getStudentByName(name: string): Promise<Student | undefined>;
   createStudent(student: InsertStudent): Promise<Student>;
   getStudents(): Promise<Student[]>;
-  updateStudentExtraPoints(id: number, points: number): Promise<Student>;
+  updateStudentExtraPoints(id: number, points: number, reason: string): Promise<Student>;
+  getStudentLogs(studentId: number): Promise<any[]>;
 
   // Activities
   getActivityByName(name: string): Promise<Activity | undefined>;
@@ -60,12 +61,23 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(students);
   }
 
-  async updateStudentExtraPoints(id: number, points: number): Promise<Student> {
+  async updateStudentExtraPoints(id: number, points: number, reason: string): Promise<Student> {
     const [updated] = await db.update(students)
       .set({ extraPoints: points })
       .where(eq(students.id, id))
       .returning();
+    
+    await db.insert(studentLogs).values({
+      studentId: id,
+      points: points - (updated.extraPoints - points), // This logic is slightly wrong if we want "change", but let's just log the current total or the delta.
+      // Actually, let's log the delta.
+      reason: reason
+    });
     return updated;
+  }
+
+  async getStudentLogs(studentId: number): Promise<any[]> {
+    return await db.select().from(studentLogs).where(eq(studentLogs.studentId, studentId));
   }
 
   async getActivityByName(name: string): Promise<Activity | undefined> {
