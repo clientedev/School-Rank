@@ -24,7 +24,7 @@ export async function registerRoutes(
           studentId: s.id,
           studentName: s.name,
           extraPoints: s.extraPoints || 0,
-          totalPoints: s.extraPoints || 0,
+          sumGrades: 0,
           activitiesCount: 0,
           grades: []
         });
@@ -33,7 +33,7 @@ export async function registerRoutes(
       allGrades.forEach(g => {
         const s = studentMap.get(g.studentId);
         if (s) {
-          s.totalPoints += g.value;
+          s.sumGrades += g.value;
           s.activitiesCount += 1;
           s.grades.push({
             activityId: g.activityId,
@@ -48,13 +48,20 @@ export async function registerRoutes(
       let classActivitiesCount = 0;
       
       const rankings = Array.from(studentMap.values()).map(s => {
-        const average = s.activitiesCount > 0 ? s.totalPoints / s.activitiesCount : 0;
+        const rawAverage = s.activitiesCount > 0 ? s.sumGrades / s.activitiesCount : 0;
+        const average = Math.min(rawAverage, 100);
+        const totalPoints = s.sumGrades + s.extraPoints;
         
-        classTotalPoints += s.totalPoints;
+        classTotalPoints += totalPoints;
         classActivitiesCount += s.activitiesCount;
         
         return {
-          ...s,
+          studentId: s.studentId,
+          studentName: s.studentName,
+          extraPoints: s.extraPoints,
+          totalPoints,
+          activitiesCount: s.activitiesCount,
+          grades: s.grades,
           average
         };
       });
