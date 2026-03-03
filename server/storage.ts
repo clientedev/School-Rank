@@ -45,7 +45,10 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   async createTeacher(t: InsertTeacher): Promise<Teacher> {
-    const [created] = await db.insert(teachers).values(t).returning();
+    const [created] = await db.insert(teachers).values({
+      ...t,
+      role: t.role || "teacher"
+    }).returning();
     return created;
   }
 
@@ -76,6 +79,10 @@ export class DatabaseStorage implements IStorage {
 
   async getClasses(teacherId?: number): Promise<Class[]> {
     if (teacherId) {
+      const teacher = await this.getTeacher(teacherId);
+      if (teacher?.role === "admin") {
+        return await db.select().from(classes);
+      }
       return await db.select().from(classes).where(eq(classes.teacherId, teacherId));
     }
     return await db.select().from(classes);

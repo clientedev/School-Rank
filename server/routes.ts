@@ -41,15 +41,16 @@ export async function registerRoutes(
   });
 
   app.post("/api/register", async (req, res) => {
-    // Only admin can register new teachers
-    if ((req.session as any).teacherId !== -1) {
+    // Admin check for teacher registration
+    const sessionTeacherId = (req.session as any).teacherId;
+    if (sessionTeacherId !== -1) {
       return res.status(403).json({ message: "Apenas o administrador pode cadastrar professores" });
     }
 
     const { name, email, password } = req.body;
     const existing = await storage.getTeacherByEmail(email);
     if (existing) return res.status(400).json({ message: "Email já cadastrado" });
-    const created = await storage.createTeacher({ name, email, password });
+    const created = await storage.createTeacher({ name, email, password, role: "teacher" });
     res.json(created);
   });
 
