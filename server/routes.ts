@@ -25,6 +25,13 @@ export async function registerRoutes(
 
   app.post("/api/login", async (req, res) => {
     const { email, password } = req.body;
+    
+    // Admin login check
+    if (email === "admin" && password === "admin123") {
+      (req.session as any).teacherId = -1; // Special ID for admin
+      return res.json({ success: true, teacherId: -1, isAdmin: true });
+    }
+
     const t = await storage.getTeacherByEmail(email);
     if (!t || t.password !== password) {
       return res.status(401).json({ message: "Email ou senha inválida" });
@@ -34,18 +41,24 @@ export async function registerRoutes(
   });
 
   app.post("/api/register", async (req, res) => {
+    // Only admin can register new teachers
+    if ((req.session as any).teacherId !== -1) {
+      return res.status(403).json({ message: "Apenas o administrador pode cadastrar professores" });
+    }
+
     const { name, email, password } = req.body;
     const existing = await storage.getTeacherByEmail(email);
     if (existing) return res.status(400).json({ message: "Email já cadastrado" });
     const created = await storage.createTeacher({ name, email, password });
-    (req.session as any).teacherId = created.id;
     res.json(created);
   });
 
   app.get("/api/classes", async (req, res) => {
     const teacherId = (req.session as any).teacherId;
-    if (!teacherId) return res.status(401).json({ message: "Não autorizado" });
-    const classes = await storage.getClasses(teacherId);
+    if (teacherId === undefined) return res.status(401).json({ message: "Não autorizado" });
+    
+    // Admin sees all classes, teachers see only theirs
+    const classes = await storage.getClasses(teacherId === -1 ? undefined : teacherId);
     res.json(classes);
   });
 

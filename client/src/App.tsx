@@ -37,32 +37,45 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
     try {
       const res = await apiRequest("POST", "/api/register", { name, email, password });
       const data = await res.json();
-      onLogin(data.id);
+      toast({ title: "Sucesso", description: "Professor cadastrado com sucesso" });
+      setIsCreating(false);
+      setName("");
+      setEmail("");
+      setPassword("");
     } catch (e) {
-      toast({ title: "Erro", description: "Falha ao criar conta", variant: "destructive" });
+      toast({ title: "Erro", description: "Falha ao criar conta. Apenas admin pode cadastrar.", variant: "destructive" });
     }
   };
+
+  const isAdmin = localStorage.getItem("teacherId") === "-1";
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
-            {isCreating ? "Criar Conta de Professor" : "Acesso do Professor"}
+            {isCreating ? "Cadastrar Professor (Admin)" : "Acesso do Professor"}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {isCreating && (
             <Input placeholder="Nome Completo" value={name} onChange={e => setName(e.target.value)} />
           )}
-          <Input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} />
+          <Input placeholder="Usuário/Email" value={email} onChange={e => setEmail(e.target.value)} />
           <Input type="password" placeholder="Senha" value={password} onChange={e => setPassword(e.target.value)} />
           <Button className="w-full" onClick={isCreating ? handleCreate : handleLogin}>
-            {isCreating ? "Criar Conta" : "Entrar"}
+            {isCreating ? "Cadastrar" : "Entrar"}
           </Button>
-          <Button variant="link" className="w-full" onClick={() => setIsCreating(!isCreating)}>
-            {isCreating ? "Já tenho uma conta" : "Criar nova conta de professor"}
-          </Button>
+          {isAdmin && !isCreating && (
+            <Button variant="link" className="w-full" onClick={() => setIsCreating(true)}>
+              Cadastrar novo professor
+            </Button>
+          )}
+          {isCreating && (
+            <Button variant="link" className="w-full" onClick={() => setIsCreating(false)}>
+              Voltar para Login
+            </Button>
+          )}
         </CardContent>
       </Card>
     </div>
