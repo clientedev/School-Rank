@@ -23,6 +23,16 @@ export async function registerRoutes(
     secret: process.env.SESSION_SECRET || "ranking-secret-key-dev-only"
   }));
 
+  app.post("/api/logout", (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Erro ao sair" });
+      }
+      res.clearCookie("connect.sid");
+      res.json({ success: true });
+    });
+  });
+
   app.post("/api/login", async (req, res) => {
     const { email, password } = req.body;
     

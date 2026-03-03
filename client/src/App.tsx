@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { LogOut, RefreshCw } from "lucide-react";
 
 function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
   const [email, setEmail] = useState("");
@@ -216,17 +216,44 @@ function Router() {
     return <ClassSelector teacherId={teacherId} onSelect={setClassId} />;
   }
 
+  const handleLogout = async () => {
+    try {
+      await apiRequest("POST", "/api/logout", {});
+      setTeacherId(null);
+      setClassId(null);
+      localStorage.removeItem("teacherId");
+      localStorage.removeItem("classId");
+      window.location.href = "/";
+    } catch (e) {
+      console.error("Logout failed", e);
+    }
+  };
+
   return (
     <div className="relative">
       {teacherId && (
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="fixed bottom-4 right-4 z-50"
-          onClick={() => setClassId(null)}
-        >
-          Trocar Turma
-        </Button>
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+          {classId && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="shadow-md bg-background"
+              onClick={() => setClassId(null)}
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Trocar Turma
+            </Button>
+          )}
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            className="shadow-md"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
+        </div>
       )}
       <Switch>
         <Route path="/" component={Dashboard} />
