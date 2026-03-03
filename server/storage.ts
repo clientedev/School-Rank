@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { 
-  students, activities, grades, settings,
+  students, activities, grades, settings, studentLogs,
   type Student, type Activity, type Grade,
   type InsertStudent, type InsertActivity, type InsertGrade 
 } from "@shared/schema";
@@ -62,6 +62,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateStudentExtraPoints(id: number, points: number, reason: string): Promise<Student> {
+    const [student] = await db.select().from(students).where(eq(students.id, id));
+    const oldPoints = student?.extraPoints || 0;
+    
     const [updated] = await db.update(students)
       .set({ extraPoints: points })
       .where(eq(students.id, id))
@@ -69,8 +72,7 @@ export class DatabaseStorage implements IStorage {
     
     await db.insert(studentLogs).values({
       studentId: id,
-      points: points - (updated.extraPoints - points), // This logic is slightly wrong if we want "change", but let's just log the current total or the delta.
-      // Actually, let's log the delta.
+      points: points - oldPoints,
       reason: reason
     });
     return updated;
