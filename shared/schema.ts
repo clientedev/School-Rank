@@ -2,6 +2,12 @@ import { pgTable, text, serial, integer, real, unique } from "drizzle-orm/pg-cor
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+});
+
 export const students = pgTable("students", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),

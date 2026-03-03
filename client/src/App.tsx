@@ -5,11 +5,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
+import PublicRanking from "@/pages/PublicRanking";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard}/>
+      <Route path="/ranking" component={PublicRanking}/>
       <Route component={NotFound} />
     </Switch>
   );

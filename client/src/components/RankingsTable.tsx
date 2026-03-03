@@ -20,9 +20,10 @@ interface RankingData {
 interface RankingsTableProps {
   rankings: RankingData[];
   activities: { id: number; name: string }[];
+  readonly?: boolean;
 }
 
-export function RankingsTable({ rankings, activities }: RankingsTableProps) {
+export function RankingsTable({ rankings, activities, readonly = false }: RankingsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   
   const filteredRankings = rankings.filter(r => 
@@ -30,17 +31,17 @@ export function RankingsTable({ rankings, activities }: RankingsTableProps) {
   );
 
   const getRankIcon = (position: number) => {
-    if (position === 1) return <Trophy className="w-5 h-5 text-[hsl(var(--rank-1))]" />;
-    if (position === 2) return <Medal className="w-5 h-5 text-[hsl(var(--rank-2))]" />;
-    if (position === 3) return <Award className="w-5 h-5 text-[hsl(var(--rank-3))]" />;
-    return <span className="font-bold text-muted-foreground w-5 text-center">{position}º</span>;
+    if (position === 1) return <Trophy className="w-6 h-6 text-yellow-500 drop-shadow-lg animate-bounce" />;
+    if (position === 2) return <Medal className="w-5 h-5 text-slate-400 drop-shadow-md" />;
+    if (position === 3) return <Award className="w-5 h-5 text-amber-600 drop-shadow-sm" />;
+    return <span className="font-bold text-muted-foreground w-6 h-6 flex items-center justify-center bg-muted/50 rounded-full text-xs">{position}</span>;
   };
 
   const getRowClass = (position: number) => {
-    if (position === 1) return "bg-[hsl(var(--rank-1-bg))] border-[hsl(var(--rank-1))]/20 hover:bg-[hsl(var(--rank-1-bg))]/80";
-    if (position === 2) return "bg-[hsl(var(--rank-2-bg))] border-[hsl(var(--rank-2))]/20 hover:bg-[hsl(var(--rank-2-bg))]/80";
-    if (position === 3) return "bg-[hsl(var(--rank-3-bg))] border-[hsl(var(--rank-3))]/20 hover:bg-[hsl(var(--rank-3-bg))]/80";
-    return "bg-card hover:bg-muted/50 border-transparent";
+    if (position === 1) return "bg-gradient-to-r from-yellow-50/50 to-transparent border-l-yellow-400 hover:from-yellow-100/50";
+    if (position === 2) return "bg-gradient-to-r from-slate-50/50 to-transparent border-l-slate-300 hover:from-slate-100/50";
+    if (position === 3) return "bg-gradient-to-r from-amber-50/50 to-transparent border-l-amber-400 hover:from-amber-100/50";
+    return "bg-card hover:bg-muted/30 border-l-transparent";
   };
 
   return (
@@ -115,12 +116,18 @@ export function RankingsTable({ rankings, activities }: RankingsTableProps) {
                     const grade = student.grades.find(g => g.activityId === act.id);
                     return (
                       <td key={act.id} className="px-6 py-4 text-center">
-                        <EditableGrade 
-                          gradeId={grade?.gradeId}
-                          value={grade?.value}
-                          studentId={student.studentId}
-                          activityId={act.id}
-                        />
+                        {readonly ? (
+                          <span className="font-medium text-sm">
+                            {grade?.value?.toFixed(1) || "-"}
+                          </span>
+                        ) : (
+                          <EditableGrade 
+                            gradeId={grade?.gradeId}
+                            value={grade?.value}
+                            studentId={student.studentId}
+                            activityId={act.id}
+                          />
+                        )}
                       </td>
                     );
                   })}

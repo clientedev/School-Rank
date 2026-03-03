@@ -24,9 +24,27 @@ export interface IStorage {
   updateGrade(id: number, value: number): Promise<Grade>;
   getGrades(): Promise<Grade[]>;
   getAllGradesWithDetails(): Promise<any[]>;
+  
+  // Settings
+  getSetting(key: string): Promise<string | undefined>;
+  updateSetting(key: string, value: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
+  async getSetting(key: string): Promise<string | undefined> {
+    const [setting] = await db.select().from(settings).where(eq(settings.key, key));
+    return setting?.value;
+  }
+
+  async updateSetting(key: string, value: string): Promise<void> {
+    const existing = await this.getSetting(key);
+    if (existing !== undefined) {
+      await db.update(settings).set({ value }).where(eq(settings.key, key));
+    } else {
+      await db.insert(settings).values({ key, value });
+    }
+  }
+
   async getStudentByName(name: string): Promise<Student | undefined> {
     const [student] = await db.select().from(students).where(eq(students.name, name));
     return student;

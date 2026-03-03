@@ -5,11 +5,40 @@ import { StatsCards } from "@/components/StatsCards";
 import { RankingsTable } from "@/components/RankingsTable";
 import { PerformanceChart } from "@/components/PerformanceChart";
 import { ExportButtons } from "@/components/ExportButtons";
-import { UploadCloud, LayoutDashboard, FileSpreadsheet, Loader2 } from "lucide-react";
+import { UploadCloud, LayoutDashboard, FileSpreadsheet, Loader2, Edit2, Share2 } from "lucide-react";
+import { api, buildUrl } from "@shared/routes";
+import { queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Dashboard() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [newName, setNewName] = useState("");
   const { data, isLoading, error } = useDashboard();
+  const { toast } = useToast();
+
+  const handleUpdateName = async () => {
+    try {
+      const res = await fetch(api.settings.updateClassName.path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ className: newName })
+      });
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: [api.dashboard.path] });
+        setIsEditingName(false);
+        toast({ title: "Nome atualizado!" });
+      }
+    } catch (err) {
+      toast({ title: "Erro ao atualizar", variant: "destructive" });
+    }
+  };
+
+  const handleShare = () => {
+    const url = window.location.origin + "/ranking";
+    navigator.clipboard.writeText(url);
+    toast({ title: "Link copiado!", description: "Envie este link para seus alunos." });
+  };
 
   if (isLoading) {
     return (
@@ -19,7 +48,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -51,12 +79,40 @@ export default function Dashboard() {
             <div className="w-10 h-10 bg-gradient-to-br from-primary to-violet-500 rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/20">
               <LayoutDashboard className="w-5 h-5" />
             </div>
-            <h1 className="text-2xl font-extrabold font-display hidden sm:block">
-              <span className="text-gradient">Edu</span>Rank
-            </h1>
+            {isEditingName ? (
+              <div className="flex items-center gap-2">
+                <input 
+                  className="bg-muted px-2 py-1 rounded-md outline-none border border-primary"
+                  value={newName}
+                  onChange={e => setNewName(e.target.value)}
+                  autoFocus
+                />
+                <button onClick={handleUpdateName} className="text-xs bg-primary text-white px-2 py-1 rounded">Salvar</button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 group">
+                <h1 className="text-2xl font-extrabold font-display">
+                  <span className="text-gradient">{data?.className || "EduRank"}</span>
+                </h1>
+                <button 
+                  onClick={() => { setIsEditingName(true); setNewName(data?.className || ""); }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded"
+                >
+                  <Edit2 className="w-4 h-4 text-muted-foreground" />
+                </button>
+              </div>
+            )}
           </div>
           
           <div className="flex items-center gap-4">
+            <button 
+              onClick={handleShare}
+              className="p-2.5 rounded-xl border border-border hover:bg-muted transition-colors flex items-center gap-2"
+              title="Compartilhar Ranking"
+            >
+              <Share2 className="w-5 h-5" />
+              <span className="hidden md:inline">Link Alunos</span>
+            </button>
             {hasData && <ExportButtons rankings={data.rankings} activities={data.activities} />}
             <button
               onClick={() => setIsUploadModalOpen(true)}
@@ -68,6 +124,7 @@ export default function Dashboard() {
           </div>
         </div>
       </header>
+// ... rest of Dashboard ...
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         

@@ -13,6 +13,7 @@ export const api = {
     path: '/api/dashboard' as const,
     responses: {
       200: z.object({
+        className: z.string().optional(),
         rankings: z.array(z.object({
           studentId: z.number(),
           studentName: z.string(),
@@ -37,6 +38,16 @@ export const api = {
           name: z.string()
         }))
       })
+    }
+  },
+  settings: {
+    updateClassName: {
+      method: 'POST' as const,
+      path: '/api/settings/class-name' as const,
+      input: z.object({ className: z.string() }),
+      responses: {
+        200: z.object({ success: z.boolean() }),
+      }
     }
   },
   activities: {

@@ -13,6 +13,7 @@ export async function registerRoutes(
     try {
       const allGrades = await storage.getAllGradesWithDetails();
       const activities = await storage.getActivities();
+      const className = await storage.getSetting("class_name") || "Minha Turma";
       
       const studentMap = new Map<number, any>();
       
@@ -76,6 +77,7 @@ export async function registerRoutes(
       }
       
       res.json({
+        className,
         rankings: finalizedRankings,
         stats: {
           classAverage,
@@ -87,6 +89,16 @@ export async function registerRoutes(
     } catch (err) {
       console.error("Dashboard error:", err);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  app.post(api.settings.updateClassName.path, async (req, res) => {
+    try {
+      const { className } = api.settings.updateClassName.input.parse(req.body);
+      await storage.updateSetting("class_name", className);
+      res.json({ success: true });
+    } catch (err) {
+      res.status(500).json({ message: "Failed to update class name" });
     }
   });
 
