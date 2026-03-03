@@ -14,13 +14,13 @@ export async function registerRoutes(
 ): Promise<Server> {
   
   app.use(session({
-    cookie: { maxAge: 86400000 },
+    cookie: { maxAge: 86400000, secure: process.env.NODE_ENV === "production", httpOnly: true, sameSite: "lax" },
     store: new MemoryStore({
       checkPeriod: 86400000
     }),
     resave: false,
     saveUninitialized: false,
-    secret: "ranking-secret-key"
+    secret: process.env.SESSION_SECRET || "ranking-secret-key-dev-only"
   }));
 
   app.post("/api/login", async (req, res) => {
