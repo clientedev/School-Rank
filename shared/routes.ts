@@ -71,8 +71,8 @@ export const api = {
       input: z.object({
         data: z.array(z.object({
           studentName: z.string(),
-          activityName: z.string(),
-          value: z.number()
+          activityName: z.string().nullable(),
+          value: z.any().nullable()
         }))
       }),
       responses: {

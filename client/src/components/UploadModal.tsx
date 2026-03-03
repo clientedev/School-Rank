@@ -65,13 +65,13 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
       const formattedData: any[] = [];
       const columnNames = Object.keys(json[0] || {});
       const studentNameKey = columnNames.find(k => 
-        ['Nome do Aluno', 'Aluno', 'Nome', 'Name', 'Student'].includes(k)
+        ['Nome do aluno', 'Nome do Aluno', 'Aluno', 'Nome', 'Name', 'Student'].includes(k)
       );
 
       if (!studentNameKey) {
         toast({
           title: "Erro de formatação",
-          description: "O Excel deve conter uma coluna com o nome do aluno.",
+          description: "O Excel deve conter uma coluna com o nome do aluno (ex: 'Nome do aluno').",
           variant: "destructive"
         });
         return;
@@ -84,21 +84,26 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
         const studentName = row[studentNameKey];
         if (!studentName) return;
 
-        activityKeys.forEach(activityName => {
-          let valueRaw = row[activityName];
-          if (valueRaw === undefined || valueRaw === null || valueRaw === '') return;
+        // Se não houver colunas de atividade, apenas garantimos que o aluno seja criado/processado
+        if (activityKeys.length === 0) {
+          formattedData.push({ studentName, activityName: null, value: null });
+        } else {
+          activityKeys.forEach(activityName => {
+            let valueRaw = row[activityName];
+            if (valueRaw === undefined || valueRaw === null || valueRaw === '') return;
 
-          let value = 0;
-          if (typeof valueRaw === 'string') {
-            value = parseFloat(valueRaw.replace(',', '.'));
-          } else if (typeof valueRaw === 'number') {
-            value = valueRaw;
-          }
+            let value = 0;
+            if (typeof valueRaw === 'string') {
+              value = parseFloat(valueRaw.replace(',', '.'));
+            } else if (typeof valueRaw === 'number') {
+              value = valueRaw;
+            }
 
-          if (!isNaN(value)) {
-            formattedData.push({ studentName, activityName, value });
-          }
-        });
+            if (!isNaN(value)) {
+              formattedData.push({ studentName, activityName, value });
+            }
+          });
+        }
       });
 
       if (formattedData.length === 0) {
@@ -176,22 +181,18 @@ export function UploadModal({ isOpen, onClose }: UploadModalProps) {
                   <table className="text-xs w-full border-collapse border border-border bg-background">
                     <thead>
                       <tr>
-                        <th className="border border-border p-1 bg-muted">Nome do Aluno</th>
-                        <th className="border border-border p-1 bg-muted">Atividade 1</th>
-                        <th className="border border-border p-1 bg-muted">Atividade 2</th>
+                        <th className="border border-border p-1 bg-muted">Nome do aluno</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
                         <td className="border border-border p-1 italic text-muted-foreground">Nome do Aluno...</td>
-                        <td className="border border-border p-1 italic text-muted-foreground">Nota...</td>
-                        <td className="border border-border p-1 italic text-muted-foreground">Nota...</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
                 <p className="text-[10px] text-muted-foreground mt-2 italic">
-                  * Você pode adicionar quantas colunas de atividades quiser após o nome.
+                  * Importe a lista de alunos e depois adicione as atividades no painel.
                 </p>
               </div>
             </div>

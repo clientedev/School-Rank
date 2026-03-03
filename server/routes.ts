@@ -123,38 +123,41 @@ export async function registerRoutes(
       const { data } = api.grades.batchUpload.input.parse(req.body);
       
       for (const row of data) {
-        // Parse numbers safely from potentially localized formats if needed (e.g. 8,5 -> 8.5)
-        const valueStr = String(row.value).replace(',', '.');
-        const numericValue = parseFloat(valueStr);
-        
-        if (isNaN(numericValue)) continue; // skip invalid grades
-        
         // Find or create student
         let student = await storage.getStudentByName(row.studentName);
         if (!student) {
           student = await storage.createStudent({ name: row.studentName });
         }
         
-        // Find or create activity
-        let activity = await storage.getActivityByName(row.activityName);
-        if (!activity) {
-          activity = await storage.createActivity({ name: row.activityName });
-        }
-        
-        // Find or create/update grade
-        const existingGrade = await storage.getGrade(student.id, activity.id);
-        if (existingGrade) {
-          await storage.updateGrade(existingGrade.id, numericValue);
-        } else {
-          await storage.createGrade({
-            studentId: student.id,
-            activityId: activity.id,
-            value: numericValue
-          });
+        // Se houver atividade e valor, processa a nota
+        if (row.activityName && row.value !== null) {
+          // Parse numbers safely from potentially localized formats if needed (e.g. 8,5 -> 8.5)
+          const valueStr = String(row.value).replace(',', '.');
+          const numericValue = parseFloat(valueStr);
+          
+          if (isNaN(numericValue)) continue;
+          
+          // Find or create activity
+          let activity = await storage.getActivityByName(row.activityName);
+          if (!activity) {
+            activity = await storage.createActivity({ name: row.activityName });
+          }
+          
+          // Find or create/update grade
+          const existingGrade = await storage.getGrade(student.id, activity.id);
+          if (existingGrade) {
+            await storage.updateGrade(existingGrade.id, numericValue);
+          } else {
+            await storage.createGrade({
+              studentId: student.id,
+              activityId: activity.id,
+              value: numericValue
+            });
+          }
         }
       }
       
-      res.json({ success: true, message: "Batch uploaded successfully" });
+      res.json({ success: true, message: "Importação concluída com sucesso" });
     } catch (err) {
       if (err instanceof z.ZodError) {
         return res.status(400).json({
