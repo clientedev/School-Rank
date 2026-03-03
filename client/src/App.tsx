@@ -41,7 +41,7 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
             </div>
           </div>
           <CardTitle className="text-3xl font-bold text-center tracking-tight">
-            Minha Turma
+            Ranking de turmas - gestão de notas
           </CardTitle>
           <p className="text-center text-muted-foreground">Gestão de notas e desempenho</p>
         </CardHeader>
@@ -75,7 +75,7 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
   );
 }
 
-function AdminPanel() {
+function AdminPanel({ onLogout }: { onLogout: () => void }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -94,37 +94,51 @@ function AdminPanel() {
   };
 
   return (
-    <Card className="w-full max-w-4xl mx-auto border-dashed bg-muted/30">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <span className="bg-primary text-primary-foreground p-1 rounded text-sm">ADMIN</span>
-          Cadastrar Novo Professor
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase text-muted-foreground">Nome Completo</label>
-            <Input placeholder="Ex: João Silva" value={name} onChange={e => setName(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase text-muted-foreground">Email/Usuário</label>
-            <Input placeholder="usuario@email.com" value={email} onChange={e => setEmail(e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase text-muted-foreground">Senha Provisória</label>
-            <Input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
-          </div>
-          <Button className="w-full" onClick={handleCreateTeacher}>
-            Cadastrar Professor
+    <Card className="w-full max-w-4xl mx-auto border-primary/20 bg-primary/5 shadow-lg overflow-hidden">
+      <CardHeader className="bg-primary text-primary-foreground py-4">
+        <div className="flex justify-between items-center">
+          <CardTitle className="flex items-center gap-2 text-xl">
+            <span className="bg-white text-primary px-2 py-0.5 rounded text-xs font-black">ADMIN</span>
+            Painel de Controle
+          </CardTitle>
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            onClick={onLogout}
+            className="font-bold"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Desligar Sistema
           </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-6">
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg border-b pb-2">Cadastrar Novo Professor</h3>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase text-muted-foreground">Nome Completo</label>
+              <Input placeholder="Ex: João Silva" value={name} onChange={e => setName(e.target.value)} className="bg-background" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase text-muted-foreground">Email/Usuário</label>
+              <Input placeholder="usuario@email.com" value={email} onChange={e => setEmail(e.target.value)} className="bg-background" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase text-muted-foreground">Senha Provisória</label>
+              <Input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="bg-background" />
+            </div>
+            <Button className="w-full font-bold shadow-md" onClick={handleCreateTeacher}>
+              Cadastrar Professor
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>
   );
 }
 
-function ClassSelector({ teacherId, onSelect }: { teacherId: number, onSelect: (id: number) => void }) {
+function ClassSelector({ teacherId, onSelect, onLogout }: { teacherId: number, onSelect: (id: number) => void, onLogout: () => void }) {
   const [newClassName, setNewClassName] = useState("");
   const { toast } = useToast();
   const { data: classes, refetch } = useQuery<any[]>({ queryKey: ["/api/classes"] });
@@ -143,7 +157,7 @@ function ClassSelector({ teacherId, onSelect }: { teacherId: number, onSelect: (
 
   return (
     <div className="min-h-screen bg-background p-4 space-y-8">
-      {isAdmin && <AdminPanel />}
+      {isAdmin && <AdminPanel onLogout={onLogout} />}
 
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
@@ -155,7 +169,7 @@ function ClassSelector({ teacherId, onSelect }: { teacherId: number, onSelect: (
               onChange={e => setNewClassName(e.target.value)}
               className="w-48"
             />
-            <Button onClick={handleCreateClass}>Criar Turma</Button>
+            <Button onClick={handleCreateClass} className="font-bold">Criar Turma</Button>
           </div>
         </div>
 
@@ -163,11 +177,11 @@ function ClassSelector({ teacherId, onSelect }: { teacherId: number, onSelect: (
           {classes?.map(c => (
             <Card 
               key={c.id} 
-              className="cursor-pointer hover:border-primary transition-colors"
+              className="cursor-pointer hover:border-primary hover:shadow-md transition-all group"
               onClick={() => onSelect(c.id)}
             >
               <CardHeader>
-                <CardTitle>{c.name}</CardTitle>
+                <CardTitle className="group-hover:text-primary transition-colors">{c.name}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground">Clique para gerenciar esta turma</p>
@@ -175,7 +189,7 @@ function ClassSelector({ teacherId, onSelect }: { teacherId: number, onSelect: (
             </Card>
           ))}
           {classes?.length === 0 && (
-            <p className="col-span-full text-center py-12 text-muted-foreground">
+            <p className="col-span-full text-center py-12 text-muted-foreground bg-muted/20 rounded-lg border-2 border-dashed">
               Nenhuma turma encontrada. Crie sua primeira turma acima.
             </p>
           )}
@@ -213,7 +227,7 @@ function Router() {
   }
 
   if (teacherId && !classId && !isPublicRoute) {
-    return <ClassSelector teacherId={teacherId} onSelect={setClassId} />;
+    return <ClassSelector teacherId={teacherId} onSelect={setClassId} onLogout={handleLogout} />;
   }
 
   const handleLogout = async () => {

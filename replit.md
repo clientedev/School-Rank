@@ -1,4 +1,4 @@
-# Minha Turma - Class Grade Management App
+# Ranking de turmas - gestão de notas
 
 ## Overview
 A full-stack web application for managing classroom grades, student rankings, and activities. Built with React (frontend) and Express.js (backend), with in-memory data storage.
