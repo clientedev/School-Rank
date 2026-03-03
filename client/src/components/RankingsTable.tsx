@@ -30,6 +30,11 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
     r.studentName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Sort by name if no activities exist, otherwise use the provided ranking order
+  const displayRankings = activities.length === 0 
+    ? [...filteredRankings].sort((a, b) => a.studentName.localeCompare(b.studentName))
+    : filteredRankings;
+
   const getRankIcon = (position: number) => {
     if (position === 1) return <Trophy className="w-6 h-6 text-yellow-500 drop-shadow-lg animate-bounce" />;
     if (position === 2) return <Medal className="w-5 h-5 text-slate-400 drop-shadow-md" />;
@@ -82,17 +87,17 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
             </tr>
           </thead>
           <tbody className="divide-y divide-border/50">
-            {filteredRankings.length === 0 ? (
+            {displayRankings.length === 0 ? (
               <tr>
                 <td colSpan={4 + activities.length} className="px-6 py-12 text-center text-muted-foreground">
                   Nenhum aluno encontrado.
                 </td>
               </tr>
             ) : (
-              filteredRankings.map((student) => (
+              displayRankings.map((student) => (
                 <tr 
                   key={student.studentId} 
-                  className={`group transition-colors border-l-4 ${getRowClass(student.position)}`}
+                  className={`group transition-colors border-l-4 ${activities.length > 0 ? getRowClass(student.position) : "bg-card hover:bg-muted/30 border-l-transparent"}`}
                 >
                   <td className="px-6 py-4">
                     <div className="flex justify-center items-center h-full">

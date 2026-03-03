@@ -68,7 +68,7 @@ export default function Dashboard() {
     );
   }
 
-  const hasData = data && data.rankings.length > 0;
+  const hasData = data && (data.rankings.length > 0 || data.activities.length > 0);
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -127,6 +127,30 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         
+        <div className="flex justify-end mb-4">
+           <button
+              onClick={() => {
+                const name = prompt("Nome da Atividade:");
+                if (name) {
+                  fetch(api.activities.create.path, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                  }).then(res => {
+                    if (res.ok) {
+                      queryClient.invalidateQueries({ queryKey: [api.dashboard.path] });
+                      toast({ title: "Atividade criada!" });
+                    }
+                  });
+                }
+              }}
+              className="px-4 py-2 rounded-xl text-sm font-semibold bg-violet-500 text-white shadow-lg hover:bg-violet-600 transition-all flex items-center gap-2"
+            >
+              <Edit2 className="w-4 h-4" />
+              Nova Atividade
+            </button>
+        </div>
+
         {!hasData ? (
           <div className="flex flex-col items-center justify-center py-32 text-center">
             <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center text-muted-foreground mb-6 shadow-inner">

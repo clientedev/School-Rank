@@ -13,30 +13,34 @@ export async function registerRoutes(
     try {
       const allGrades = await storage.getAllGradesWithDetails();
       const activities = await storage.getActivities();
+      const students = await storage.getStudents();
       const className = await storage.getSetting("class_name") || "Minha Turma";
       
       const studentMap = new Map<number, any>();
       
+      // Initialize map with all students to ensure they show up even without grades
+      students.forEach(s => {
+        studentMap.set(s.id, {
+          studentId: s.id,
+          studentName: s.name,
+          totalPoints: 0,
+          activitiesCount: 0,
+          grades: []
+        });
+      });
+      
       allGrades.forEach(g => {
-        if (!studentMap.has(g.studentId)) {
-          studentMap.set(g.studentId, {
-            studentId: g.studentId,
-            studentName: g.studentName,
-            totalPoints: 0,
-            activitiesCount: 0,
-            grades: []
+        const s = studentMap.get(g.studentId);
+        if (s) {
+          s.totalPoints += g.value;
+          s.activitiesCount += 1;
+          s.grades.push({
+            activityId: g.activityId,
+            activityName: g.activityName,
+            value: g.value,
+            gradeId: g.gradeId
           });
         }
-        
-        const s = studentMap.get(g.studentId)!;
-        s.totalPoints += g.value;
-        s.activitiesCount += 1;
-        s.grades.push({
-          activityId: g.activityId,
-          activityName: g.activityName,
-          value: g.value,
-          gradeId: g.gradeId
-        });
       });
       
       let classTotalPoints = 0;
