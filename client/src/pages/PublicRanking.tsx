@@ -4,8 +4,6 @@ import { StatsCards } from "@/components/StatsCards";
 import { LayoutDashboard, Trophy, Loader2, Star } from "lucide-react";
 import { Link } from "wouter";
 
-import { Link } from "wouter";
-
 export default function PublicRanking() {
   const { data, isLoading } = useDashboard();
 
