@@ -95,7 +95,7 @@ export async function registerRoutes(
       const activities = await storage.getActivities(classId);
       const students = await storage.getStudents(classId);
       const c = await storage.getClass(classId);
-      const className = c?.name || "Ranking de turmas - gestão de notas";
+      const className = c?.name || "Ranking da Turma";
       
       const studentMap = new Map<number, any>();
       

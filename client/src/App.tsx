@@ -41,7 +41,7 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
             </div>
           </div>
           <CardTitle className="text-3xl font-bold text-center tracking-tight">
-            Ranking de turmas - gestão de notas
+            Ranking da Turma
           </CardTitle>
           <p className="text-center text-muted-foreground">Gestão de notas e desempenho</p>
         </CardHeader>
@@ -210,26 +210,6 @@ function Router() {
   });
   const [location] = useLocation();
 
-  useEffect(() => {
-    if (teacherId) localStorage.setItem("teacherId", String(teacherId));
-    else localStorage.removeItem("teacherId");
-  }, [teacherId]);
-
-  useEffect(() => {
-    if (classId) localStorage.setItem("classId", String(classId));
-    else localStorage.removeItem("classId");
-  }, [classId]);
-
-  const isPublicRoute = location.startsWith("/ranking/") || location.startsWith("/student/");
-
-  if (!teacherId && !isPublicRoute) {
-    return <Login onLogin={setTeacherId} />;
-  }
-
-  if (teacherId && !classId && !isPublicRoute) {
-    return <ClassSelector teacherId={teacherId} onSelect={setClassId} onLogout={handleLogout} />;
-  }
-
   const handleLogout = async () => {
     try {
       await apiRequest("POST", "/api/logout", {});
@@ -242,6 +222,16 @@ function Router() {
       console.error("Logout failed", e);
     }
   };
+
+  const isPublicRoute = location.startsWith("/ranking/") || location.startsWith("/student/");
+
+  if (!teacherId && !isPublicRoute) {
+    return <Login onLogin={setTeacherId} />;
+  }
+
+  if (teacherId && !classId && !isPublicRoute) {
+    return <ClassSelector teacherId={teacherId} onSelect={setClassId} onLogout={handleLogout} />;
+  }
 
   return (
     <div className="relative">
