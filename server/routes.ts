@@ -66,8 +66,8 @@ export async function registerRoutes(
         };
       });
       
-      // Sort by average descending
-      rankings.sort((a, b) => b.average - a.average);
+      // Sort by total points descending (as requested by user)
+      rankings.sort((a, b) => b.totalPoints - a.totalPoints);
       
       // Add positions
       let classAverage = 0;

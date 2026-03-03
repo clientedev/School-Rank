@@ -67,14 +67,12 @@ export default function Analytics() {
           </div>
         </div>
 
-        <div className="glass-card p-8 rounded-[2.5rem] border border-border">
-          <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
+        <div className="p-2 space-y-8">
+          <h2 className="text-xl font-bold mb-2 flex items-center gap-2 px-6">
             <TrendingUp className="w-5 h-5 text-primary" />
-            Evolução de Desempenho
+            Evolução e Distribuição
           </h2>
-          <div className="h-[400px]">
-            <PerformanceChart rankings={data?.rankings || []} />
-          </div>
+          <PerformanceChart rankings={data?.rankings || []} />
         </div>
       </main>
     </div>
