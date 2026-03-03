@@ -1,6 +1,7 @@
-import { Trophy, Medal, Award, Search, Filter } from "lucide-react";
+import { Trophy, Medal, Award, Search, Filter, UserCog } from "lucide-react";
 import { EditableGrade } from "./EditableGrade";
 import { useState } from "react";
+import { StudentActionModal } from "./StudentActionModal";
 
 interface RankingData {
   studentId: number;
@@ -25,6 +26,7 @@ interface RankingsTableProps {
 
 export function RankingsTable({ rankings, activities, readonly = false }: RankingsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState<RankingData | null>(null);
   
   const filteredRankings = rankings.filter(r => 
     r.studentName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -105,7 +107,13 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                     </div>
                   </td>
                   <td className="px-6 py-4 font-semibold text-foreground whitespace-nowrap">
-                    {student.studentName}
+                    <button 
+                      onClick={() => !readonly && setSelectedStudent(student)}
+                      className={`hover:text-primary transition-colors flex items-center gap-2 ${!readonly ? 'cursor-pointer' : 'cursor-default'}`}
+                    >
+                      {student.studentName}
+                      {!readonly && <UserCog className="w-3.5 h-3.5 opacity-0 group-hover:opacity-50" />}
+                    </button>
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-bold text-sm">
@@ -142,6 +150,15 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
           </tbody>
         </table>
       </div>
+
+      {selectedStudent && (
+        <StudentActionModal 
+          student={selectedStudent}
+          activities={activities}
+          isOpen={!!selectedStudent}
+          onClose={() => setSelectedStudent(null)}
+        />
+      )}
     </div>
   );
 }

@@ -17,6 +17,7 @@ export const grades = pgTable("grades", {
   studentId: integer("student_id").notNull(),
   activityId: integer("activity_id").notNull(),
   value: real("value").notNull(),
+  reason: text("reason"),
 }, (t) => ({
   unq: unique().on(t.studentId, t.activityId)
 }));

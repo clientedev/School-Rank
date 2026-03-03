@@ -21,7 +21,7 @@ export interface IStorage {
   getGrade(studentId: number, activityId: number): Promise<Grade | undefined>;
   getGradeById(id: number): Promise<Grade | undefined>;
   createGrade(grade: InsertGrade): Promise<Grade>;
-  updateGrade(id: number, value: number): Promise<Grade>;
+  updateGrade(id: number, value: number, reason?: string): Promise<Grade>;
   getGrades(): Promise<Grade[]>;
   getAllGradesWithDetails(): Promise<any[]>;
   
@@ -90,9 +90,9 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
-  async updateGrade(id: number, value: number): Promise<Grade> {
+  async updateGrade(id: number, value: number, reason?: string): Promise<Grade> {
     const [updated] = await db.update(grades)
-      .set({ value })
+      .set({ value, reason })
       .where(eq(grades.id, id))
       .returning();
     return updated;
