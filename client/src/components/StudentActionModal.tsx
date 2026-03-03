@@ -29,6 +29,7 @@ interface StudentActionModalProps {
 
 export function StudentActionModal({ student, activities, isOpen, onClose }: StudentActionModalProps) {
   const [amount, setAmount] = useState<string>("1");
+  const [reason, setReason] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -39,21 +40,28 @@ export function StudentActionModal({ student, activities, isOpen, onClose }: Stu
       return;
     }
 
+    if (!reason.trim()) {
+      toast({ title: "Motivo obrigatório", description: "Por favor, informe o motivo do ajuste.", variant: "destructive" });
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const points = type === 'add' ? valueChange : -valueChange;
       const res = await fetch(`/api/students/${student.studentId}/points`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ points })
+        body: JSON.stringify({ points, reason })
       });
 
       if (res.ok) {
         queryClient.invalidateQueries({ queryKey: [api.dashboard.path] });
+        queryClient.invalidateQueries({ queryKey: [`/api/students/${student.studentId}/logs`] });
         toast({ 
           title: type === 'add' ? "Pontos atribuídos!" : "Penalidade aplicada!",
           description: `${type === 'add' ? '+' : '-'}${valueChange} pontos extras para ${student.studentName}`
         });
+        setReason("");
         onClose();
       } else {
         throw new Error();
@@ -73,7 +81,7 @@ export function StudentActionModal({ student, activities, isOpen, onClose }: Stu
             Ações: {student.studentName}
           </DialogTitle>
           <DialogDescription>
-            Atribua ou remova pontos diretamente do total do aluno.
+            Atribua ou remova pontos diretamente do total do aluno. Um motivo é obrigatório para o relatório.
           </DialogDescription>
         </DialogHeader>
 
@@ -86,6 +94,16 @@ export function StudentActionModal({ student, activities, isOpen, onClose }: Stu
               step="0.5"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              className="h-11 rounded-xl"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reason">Motivo do Ajuste</Label>
+            <Input
+              id="reason"
+              placeholder="Ex: Participação em aula, Bom comportamento..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
               className="h-11 rounded-xl"
             />
           </div>

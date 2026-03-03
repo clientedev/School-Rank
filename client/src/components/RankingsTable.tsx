@@ -2,6 +2,7 @@ import { Trophy, Medal, Award, Search, Filter, UserCog } from "lucide-react";
 import { EditableGrade } from "./EditableGrade";
 import { useState } from "react";
 import { StudentActionModal } from "./StudentActionModal";
+import { Link } from "wouter";
 
 interface RankingData {
   studentId: number;
@@ -86,12 +87,15 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                   {act.name}
                 </th>
               ))}
+              {!readonly && (
+                <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center whitespace-nowrap">Ações</th>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-border/50">
             {displayRankings.length === 0 ? (
               <tr>
-                <td colSpan={4 + activities.length} className="px-6 py-12 text-center text-muted-foreground">
+                <td colSpan={5 + activities.length} className="px-6 py-12 text-center text-muted-foreground">
                   Nenhum aluno encontrado.
                 </td>
               </tr>
@@ -107,13 +111,12 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                     </div>
                   </td>
                   <td className="px-6 py-4 font-semibold text-foreground whitespace-nowrap">
-                    <button 
-                      onClick={() => !readonly && setSelectedStudent(student)}
-                      className={`hover:text-primary transition-colors flex items-center gap-2 ${!readonly ? 'cursor-pointer' : 'cursor-default'}`}
-                    >
-                      {student.studentName}
-                      {!readonly && <UserCog className="w-3.5 h-3.5 opacity-0 group-hover:opacity-50" />}
-                    </button>
+                    <Link href={`/student/${student.studentId}`} className="hover:text-primary transition-colors flex items-center gap-2 cursor-pointer group/link">
+                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold group-hover/link:bg-primary group-hover/link:text-white transition-all">
+                        {student.studentName.charAt(0)}
+                       </div>
+                       {student.studentName}
+                    </Link>
                   </td>
                   <td className="px-6 py-4 text-center">
                     <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-bold text-sm">
@@ -144,6 +147,18 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                       </td>
                     );
                   })}
+
+                  {!readonly && (
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                        onClick={() => setSelectedStudent(student)}
+                        className="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors"
+                        title="Ações do Aluno"
+                      >
+                        <UserCog className="w-5 h-5" />
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

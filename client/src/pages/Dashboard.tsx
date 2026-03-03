@@ -174,20 +174,22 @@ export default function Dashboard() {
             <StatsCards stats={data.stats} />
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-              {/* Left Column: Rankings Table (Takes up more space) */}
-              <div className="xl:col-span-2">
+            <div className="flex flex-col gap-8">
+              {/* Rankings Table (Full Width) */}
+              <div className="w-full">
                 <RankingsTable 
                   rankings={data.rankings} 
                   activities={data.activities} 
                 />
               </div>
 
-              {/* Right Column: Charts & Extras */}
-              <div className="space-y-8">
-                <PerformanceChart rankings={data.rankings} />
+              {/* Bottom Section: Chart & Info */}
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <div className="xl:col-span-2">
+                  <PerformanceChart rankings={data.rankings} />
+                </div>
                 
-                <div className="glass-card rounded-3xl p-6">
+                <div className="glass-card rounded-3xl p-6 h-fit">
                   <h3 className="text-lg font-bold font-display text-foreground mb-2">Informações</h3>
                   <ul className="space-y-3 mt-4">
                     <li className="flex items-start gap-3 text-sm text-muted-foreground">
@@ -196,7 +198,7 @@ export default function Dashboard() {
                     </li>
                     <li className="flex items-start gap-3 text-sm text-muted-foreground">
                       <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5" />
-                      O formato da planilha deve ter uma coluna para o nome do aluno e as outras colunas para as atividades com suas respectivas notas.
+                      Clique no nome de um aluno para ver seu perfil individual e histórico de pontos.
                     </li>
                   </ul>
                 </div>
