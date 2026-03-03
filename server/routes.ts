@@ -12,7 +12,7 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
-  
+
   app.use(session({
     cookie: { maxAge: 86400000, secure: process.env.NODE_ENV === "production", httpOnly: true, sameSite: "lax" },
     store: new MemoryStore({
@@ -33,9 +33,23 @@ export async function registerRoutes(
     });
   });
 
+  app.get("/api/me", async (req, res) => {
+    const teacherId = (req.session as any).teacherId;
+    if (!teacherId) return res.status(401).json({ message: "Não autorizado" });
+
+    if (teacherId === -1) {
+      return res.json({ id: -1, name: "Admin", role: "admin" });
+    }
+
+    const t = await storage.getTeacher(teacherId);
+    if (!t) return res.status(401).json({ message: "Professor não encontrado" });
+    res.json(t);
+  });
+
   app.post("/api/login", async (req, res) => {
+
     const { email, password } = req.body;
-    
+
     // Admin login check
     if (email === "admin" && password === "admin123") {
       (req.session as any).teacherId = -1; // Special ID for admin
@@ -64,22 +78,75 @@ export async function registerRoutes(
     res.json(created);
   });
 
+  app.get("/api/teachers", async (req, res) => {
+    const sessionTeacherId = (req.session as any).teacherId;
+    if (sessionTeacherId !== -1) {
+      return res.status(403).json({ message: "Não autorizado" });
+    }
+    const teachers = await storage.getTeachers();
+    res.json(teachers.filter(t => t.id !== -1)); // Don't return admin itself
+  });
+
+  app.delete("/api/teachers/:id", async (req, res) => {
+    const sessionTeacherId = (req.session as any).teacherId;
+    if (sessionTeacherId !== -1) {
+      return res.status(403).json({ message: "Não autorizado" });
+    }
+    await storage.deleteTeacher(Number(req.params.id));
+    res.json({ success: true });
+  });
+
+  app.delete("/api/classes/:id", async (req, res) => {
+    const sessionTeacherId = (req.session as any).teacherId;
+    if (sessionTeacherId !== -1) {
+      // Teachers can only delete their own classes
+      const c = await storage.getClass(Number(req.params.id));
+      if (!c || c.teacherId !== sessionTeacherId) {
+        return res.status(403).json({ message: "Não autorizado" });
+      }
+    }
+    await storage.deleteClass(Number(req.params.id));
+    res.json({ success: true });
+  });
+
+  app.get("/api/admin/stats", async (req, res) => {
+    if ((req.session as any).teacherId !== -1) {
+      return res.status(403).json({ message: "Não autorizado" });
+    }
+    const stats = await storage.getSystemStats();
+    res.json(stats);
+  });
+
   app.get("/api/classes", async (req, res) => {
     const teacherId = (req.session as any).teacherId;
     if (teacherId === undefined) return res.status(401).json({ message: "Não autorizado" });
-    
+
     // Admin sees all classes, teachers see only theirs
     const classes = await storage.getClasses(teacherId === -1 ? undefined : teacherId);
     res.json(classes);
   });
+
+  app.post("/api/classes/:id/select", async (req, res) => {
+    const teacherId = (req.session as any).teacherId;
+    if (teacherId === undefined) return res.status(401).json({ message: "Não autorizado" });
+
+    const classId = Number(req.params.id);
+    (req.session as any).classId = classId;
+    res.json({ success: true, classId });
+  });
+
 
   app.post("/api/classes", async (req, res) => {
     const teacherId = (req.session as any).teacherId;
     if (!teacherId) return res.status(401).json({ message: "Não autorizado" });
     const { name, password } = req.body;
     const created = await storage.createClass({ name, password, teacherId });
+    (req.session as any).classId = created.id;
     res.json(created);
   });
+
+
+
 
   const requireAuth = (req: any, res: any, next: any) => {
     if (!req.session.teacherId) return res.status(401).json({ message: "Não autorizado" });
@@ -96,9 +163,9 @@ export async function registerRoutes(
       const students = await storage.getStudents(classId);
       const c = await storage.getClass(classId);
       const className = c?.name || "Ranking da Turma";
-      
+
       const studentMap = new Map<number, any>();
-      
+
       students.forEach(s => {
         studentMap.set(s.id, {
           studentId: s.id,
@@ -109,7 +176,7 @@ export async function registerRoutes(
           grades: []
         });
       });
-      
+
       allGrades.forEach(g => {
         const s = studentMap.get(g.studentId);
         if (s) {
@@ -123,18 +190,18 @@ export async function registerRoutes(
           });
         }
       });
-      
+
       let classTotalPoints = 0;
       let classActivitiesCount = 0;
-      
+
       const rankings = Array.from(studentMap.values()).map(s => {
         const rawAverage = s.activitiesCount > 0 ? s.sumGrades / s.activitiesCount : 0;
         const average = Math.min(rawAverage, 100);
         const totalPoints = s.sumGrades + s.extraPoints;
-        
+
         classTotalPoints += totalPoints;
         classActivitiesCount += s.activitiesCount;
-        
+
         return {
           studentId: s.studentId,
           studentName: s.studentName,
@@ -145,27 +212,27 @@ export async function registerRoutes(
           average
         };
       });
-      
+
       rankings.sort((a, b) => b.totalPoints - a.totalPoints);
-      
+
       let highestAverage = 0;
       let lowestAverage = 0;
-      
+
       const finalizedRankings = rankings.map((r, index) => {
         if (index === 0) highestAverage = r.average;
         if (index === rankings.length - 1) lowestAverage = r.average;
-        
+
         return {
           ...r,
           position: index + 1
         };
       });
-      
+
       let classAverage = 0;
       if (classActivitiesCount > 0) {
         classAverage = classTotalPoints / classActivitiesCount;
       }
-      
+
       res.json({
         className,
         classId,
@@ -209,22 +276,22 @@ export async function registerRoutes(
     try {
       const classId = (req.session as any).classId;
       const { data } = api.grades.batchUpload.input.parse(req.body);
-      
+
       for (const row of data) {
         let student = await storage.getStudentByName(row.studentName, classId);
         if (!student) {
           student = await storage.createStudent({ name: row.studentName, classId, extraPoints: 0 });
         }
-        
+
         if (row.activityName && row.value !== null) {
           const numericValue = parseFloat(String(row.value).replace(',', '.'));
           if (isNaN(numericValue)) continue;
-          
+
           let activity = await storage.getActivityByName(row.activityName, classId);
           if (!activity) {
             activity = await storage.createActivity({ name: row.activityName, classId });
           }
-          
+
           const existingGrade = await storage.getGrade(student.id, activity.id);
           if (existingGrade) {
             await storage.updateGrade(existingGrade.id, numericValue);
@@ -246,10 +313,33 @@ export async function registerRoutes(
   app.put(api.grades.update.path, requireAuth, async (req, res) => {
     try {
       const id = Number(req.params.id);
-      const { value, reason } = req.body;
-      const updated = await storage.updateGrade(id, value, reason);
-      res.json(updated);
+      const { value, reason, studentId, activityId } = req.body;
+
+      if (id > 0) {
+        const updated = await storage.updateGrade(id, value, reason);
+        return res.json(updated);
+      }
+
+      // Handle creation of new grade when id is 0
+      if (!studentId || !activityId) {
+        return res.status(400).json({ message: "Student ID and Activity ID are required for new grades" });
+      }
+
+      const existingGrade = await storage.getGrade(studentId, activityId);
+      if (existingGrade) {
+        const updated = await storage.updateGrade(existingGrade.id, value, reason);
+        return res.json(updated);
+      }
+
+      const created = await storage.createGrade({
+        studentId,
+        activityId,
+        value,
+        reason
+      });
+      res.status(201).json(created);
     } catch (err) {
+      console.error("Failed to update grade:", err);
       res.status(500).json({ message: "Failed to update grade" });
     }
   });

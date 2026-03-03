@@ -28,13 +28,13 @@ interface RankingsTableProps {
 export function RankingsTable({ rankings, activities, readonly = false }: RankingsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<RankingData | null>(null);
-  
-  const filteredRankings = rankings.filter(r => 
+
+  const filteredRankings = rankings.filter(r =>
     r.studentName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Sort by name if no activities exist, otherwise use the provided ranking order
-  const displayRankings = activities.length === 0 
+  const displayRankings = activities.length === 0
     ? [...filteredRankings].sort((a, b) => a.studentName.localeCompare(b.studentName))
     : filteredRankings;
 
@@ -59,10 +59,10 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
           <h2 className="text-xl font-bold font-display text-foreground">Ranking da Turma</h2>
           <p className="text-sm text-muted-foreground mt-1">Classificação baseada na média geral de todas as atividades.</p>
         </div>
-        
+
         <div className="relative w-full sm:w-64">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input 
+          <input
             type="text"
             placeholder="Buscar aluno..."
             value={searchTerm}
@@ -80,7 +80,7 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
               <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Aluno</th>
               <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">Média</th>
               <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">Total</th>
-              
+
               {/* Dynamic Activity Columns */}
               {activities.map(act => (
                 <th key={act.id} className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center whitespace-nowrap min-w-[100px]">
@@ -101,8 +101,8 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
               </tr>
             ) : (
               displayRankings.map((student) => (
-                <tr 
-                  key={student.studentId} 
+                <tr
+                  key={student.studentId}
                   className={`group transition-colors border-l-4 ${activities.length > 0 ? getRowClass(student.position) : "bg-card hover:bg-muted/30 border-l-transparent"}`}
                 >
                   <td className="px-6 py-4">
@@ -111,11 +111,11 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                     </div>
                   </td>
                   <td className="px-6 py-4 font-semibold text-foreground whitespace-nowrap">
-                    <Link href={`/student/${student.studentId}`} className="hover:text-primary transition-colors flex items-center gap-2 cursor-pointer group/link">
-                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold group-hover/link:bg-primary group-hover/link:text-white transition-all">
+                    <Link href={`/student/${student.studentId}?classId=${localStorage.getItem("classId")}`} className="hover:text-primary transition-colors flex items-center gap-2 cursor-pointer group/link">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold group-hover/link:bg-primary group-hover/link:text-white transition-all">
                         {student.studentName.charAt(0)}
-                       </div>
-                       {student.studentName}
+                      </div>
+                      {student.studentName}
                     </Link>
                   </td>
                   <td className="px-6 py-4 text-center">
@@ -126,7 +126,7 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                   <td className="px-6 py-4 text-center text-sm text-muted-foreground font-medium">
                     {student.totalPoints.toFixed(1)} pt
                   </td>
-                  
+
                   {/* Dynamic Grade Cells */}
                   {activities.map(act => {
                     const grade = student.grades.find(g => g.activityId === act.id);
@@ -137,7 +137,7 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                             {grade?.value !== undefined ? grade.value.toFixed(1) : "-"}
                           </span>
                         ) : (
-                          <EditableGrade 
+                          <EditableGrade
                             gradeId={grade?.gradeId}
                             value={grade?.value}
                             studentId={student.studentId}
@@ -150,7 +150,7 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
 
                   {!readonly && (
                     <td className="px-6 py-4 text-center">
-                      <button 
+                      <button
                         onClick={() => setSelectedStudent(student)}
                         className="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors"
                         title="Ações do Aluno"
@@ -167,7 +167,7 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
       </div>
 
       {selectedStudent && (
-        <StudentActionModal 
+        <StudentActionModal
           student={selectedStudent}
           activities={activities}
           isOpen={!!selectedStudent}

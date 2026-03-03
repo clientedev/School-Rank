@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDashboard } from "@/hooks/use-dashboard";
+import { useDashboard, useCreateActivity } from "@/hooks/use-dashboard";
 import { UploadModal } from "@/components/UploadModal";
 import { StatsCards } from "@/components/StatsCards";
 import { RankingsTable } from "@/components/RankingsTable";
@@ -15,15 +15,12 @@ export default function Dashboard() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [newName, setNewName] = useState("");
-  const { data, isLoading, error } = useDashboard();
+
+  const classId = Number(localStorage.getItem("classId"));
+  const { data, isLoading, error } = useDashboard(classId);
+  const createActivityMutation = useCreateActivity();
+
   const { toast } = useToast();
-
-  const classId = localStorage.getItem("classId");
-
-  if (!classId) {
-    window.location.href = "/";
-    return null;
-  }
 
   const handleUpdateName = async () => {
     try {
@@ -42,8 +39,19 @@ export default function Dashboard() {
     }
   };
 
+  const handleCreateActivity = () => {
+    const name = prompt("Nome da Atividade:");
+    if (name) {
+      createActivityMutation.mutateAsync({ name, classId }).then(() => {
+        toast({ title: "Atividade criada!" });
+      }).catch(() => {
+        toast({ title: "Erro ao criar atividade", variant: "destructive" });
+      });
+    }
+  };
+
   const handleShare = () => {
-    const url = window.location.origin + "/ranking";
+    const url = window.location.origin + "/ranking/" + classId;
     navigator.clipboard.writeText(url);
     toast({ title: "Link copiado!", description: "Envie este link para seus alunos." });
   };
@@ -65,7 +73,7 @@ export default function Dashboard() {
           </div>
           <h2 className="text-2xl font-bold mb-2">Erro de Conexão</h2>
           <p className="text-muted-foreground mb-6">Não foi possível carregar os dados. O backend pode estar indisponível.</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-6 py-2 bg-primary text-primary-foreground rounded-xl shadow-lg shadow-primary/20"
           >
@@ -89,7 +97,7 @@ export default function Dashboard() {
             </div>
             {isEditingName ? (
               <div className="flex items-center gap-2">
-                <input 
+                <input
                   className="bg-muted px-2 py-1 rounded-md outline-none border border-primary"
                   value={newName}
                   onChange={e => setNewName(e.target.value)}
@@ -102,7 +110,7 @@ export default function Dashboard() {
                 <h1 className="text-2xl font-extrabold font-display">
                   <span className="text-gradient">{data?.className || "EduRank"}</span>
                 </h1>
-                <button 
+                <button
                   onClick={() => { setIsEditingName(true); setNewName(data?.className || ""); }}
                   className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded"
                 >
@@ -111,9 +119,9 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-          
+
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={handleShare}
               className="p-2.5 rounded-xl border border-border hover:bg-muted transition-colors flex items-center gap-2"
               title="Compartilhar Ranking"
@@ -134,35 +142,22 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        
+
         <div className="flex justify-end mb-4 gap-3">
-           <Link href="/analytics">
-             <button className="px-4 py-2 rounded-xl text-sm font-semibold bg-primary/10 text-primary border border-primary/20 shadow-sm hover:bg-primary/20 transition-all flex items-center gap-2">
-               <BarChart3 className="w-4 h-4" />
-               Gráficos
-             </button>
-           </Link>
-           <button
-              onClick={() => {
-                const name = prompt("Nome da Atividade:");
-                if (name) {
-                  fetch(api.activities.create.path, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name })
-                  }).then(res => {
-                    if (res.ok) {
-                      queryClient.invalidateQueries({ queryKey: [api.dashboard.path] });
-                      toast({ title: "Atividade criada!" });
-                    }
-                  });
-                }
-              }}
-              className="px-4 py-2 rounded-xl text-sm font-semibold bg-violet-500 text-white shadow-lg hover:bg-violet-600 transition-all flex items-center gap-2"
-            >
-              <Edit2 className="w-4 h-4" />
-              Nova Atividade
+          <Link href="/analytics">
+            <button className="px-4 py-2 rounded-xl text-sm font-semibold bg-primary/10 text-primary border border-primary/20 shadow-sm hover:bg-primary/20 transition-all flex items-center gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Gráficos
             </button>
+          </Link>
+          <button
+            onClick={handleCreateActivity}
+            disabled={createActivityMutation.isPending}
+            className="px-4 py-2 rounded-xl text-sm font-semibold bg-violet-500 text-white shadow-lg hover:bg-violet-600 transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {createActivityMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit2 className="w-4 h-4" />}
+            Nova Atividade
+          </button>
         </div>
 
         {!hasData ? (
@@ -191,9 +186,9 @@ export default function Dashboard() {
             <div className="flex flex-col gap-8">
               {/* Rankings Table (Full Width) */}
               <div className="w-full">
-                <RankingsTable 
-                  rankings={data.rankings} 
-                  activities={data.activities} 
+                <RankingsTable
+                  rankings={data.rankings}
+                  activities={data.activities}
                 />
               </div>
             </div>
@@ -202,9 +197,9 @@ export default function Dashboard() {
 
       </main>
 
-      <UploadModal 
-        isOpen={isUploadModalOpen} 
-        onClose={() => setIsUploadModalOpen(false)} 
+      <UploadModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
       />
     </div>
   );

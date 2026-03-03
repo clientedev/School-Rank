@@ -3,25 +3,28 @@ import { useParams, useLocation } from "wouter";
 import { Loader2, ArrowLeft, Trophy, Star, History, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useDashboard } from "@/hooks/use-dashboard";
+import { api } from "@shared/routes";
 
 export default function StudentProfile() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
 
-  const classId = localStorage.getItem("classId");
+  // Get classId from query param or localStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const classIdQuery = urlParams.get("classId");
+  const classId = classIdQuery ? Number(classIdQuery) : Number(localStorage.getItem("classId"));
 
   const { data: logs, isLoading: logsLoading } = useQuery({
     queryKey: [`/api/students/${id}/logs`],
-  });
-
-  const { data: dashboardData, isLoading: dashLoading } = useQuery({
-    queryKey: [api.dashboard.path, { classId }],
     queryFn: async () => {
-      const res = await fetch(`${api.dashboard.path}?classId=${classId}`);
-      if (!res.ok) throw new Error("Failed to fetch dashboard data");
+      const res = await fetch(`/api/students/${id}/logs`);
+      if (!res.ok) throw new Error("Failed to fetch logs");
       return res.json();
     }
   });
+
+  const { data: dashboardData, isLoading: dashLoading } = useDashboard(classId || 0);
 
   if (logsLoading || dashLoading) {
     return (
@@ -42,11 +45,12 @@ export default function StudentProfile() {
     );
   }
 
+
   return (
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        <Button 
-          variant="ghost" 
+        <Button
+          variant="ghost"
           onClick={() => setLocation("/")}
           className="flex items-center gap-2"
         >
@@ -57,7 +61,7 @@ export default function StudentProfile() {
           <div className="absolute top-0 right-0 p-8 opacity-10">
             <Trophy className="w-32 h-32" />
           </div>
-          
+
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
             <div className="w-24 h-24 rounded-2xl bg-primary flex items-center justify-center text-primary-foreground text-4xl font-bold shadow-xl">
               {student.studentName.charAt(0)}

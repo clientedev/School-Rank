@@ -1,22 +1,25 @@
 import { db } from "./db";
-import { 
+import {
   students, activities, grades, settings, studentLogs, classes, teachers,
   type Student, type Activity, type Grade, type Class, type Teacher,
-  type InsertStudent, type InsertActivity, type InsertGrade, type InsertClass, type InsertTeacher 
+  type InsertStudent, type InsertActivity, type InsertGrade, type InsertClass, type InsertTeacher
 } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Teachers
   createTeacher(t: InsertTeacher): Promise<Teacher>;
   getTeacher(id: number): Promise<Teacher | undefined>;
   getTeacherByEmail(email: string): Promise<Teacher | undefined>;
+  getTeachers(): Promise<Teacher[]>;
+  deleteTeacher(id: number): Promise<void>;
 
   // Classes
   createClass(c: InsertClass): Promise<Class>;
   getClass(id: number): Promise<Class | undefined>;
   getClassByName(name: string): Promise<Class | undefined>;
   getClasses(teacherId?: number): Promise<Class[]>;
+  deleteClass(id: number): Promise<void>;
 
   // Students
   getStudentByName(name: string, classId: number): Promise<Student | undefined>;
@@ -37,10 +40,164 @@ export interface IStorage {
   updateGrade(id: number, value: number, reason?: string): Promise<Grade>;
   getGrades(): Promise<Grade[]>;
   getAllGradesWithDetails(classId: number): Promise<any[]>;
-  
+
   // Settings
   getSetting(key: string, classId?: number): Promise<string | undefined>;
   updateSetting(key: string, value: string, classId?: number): Promise<void>;
+
+  // Admin Stats
+  getSystemStats(): Promise<{ teachers: number, classes: number, students: number }>;
+}
+
+export class MemStorage implements IStorage {
+  private teachers: Map<number, Teacher>;
+  private classes: Map<number, Class>;
+  private students: Map<number, Student>;
+  private activities: Map<number, Activity>;
+  private grades: Map<number, Grade>;
+  private studentLogs: any[];
+  private settings: Map<string, string>;
+  private nextId: { [key: string]: number };
+
+  constructor() {
+    this.teachers = new Map();
+    this.classes = new Map();
+    this.students = new Map();
+    this.activities = new Map();
+    this.grades = new Map();
+    this.studentLogs = [];
+    this.settings = new Map();
+    this.nextId = { teachers: 1, classes: 1, students: 1, activities: 1, grades: 1 };
+
+    // Initial Demo Data
+    this.createTeacher({ name: "Professor Demo", email: "professor@demo.com", password: "123", role: "teacher" });
+    this.createClass({ name: "Turma de Exemplo A", password: "123", teacherId: 1 });
+    this.createStudent({ name: "Caleb Gabriel", classId: 1, extraPoints: 10 });
+    this.createStudent({ name: "Ana Beatriz", classId: 1, extraPoints: 5 });
+    this.createActivity({ name: "Prova 1", classId: 1 });
+    this.createGrade({ studentId: 1, activityId: 1, value: 85, reason: "Ótimo desempenho" });
+    this.createGrade({ studentId: 2, activityId: 1, value: 92, reason: "Excelente" });
+  }
+
+  async createTeacher(t: InsertTeacher): Promise<Teacher> {
+    const id = this.nextId.teachers++;
+    const teacher: Teacher = { ...t, id, role: t.role || "teacher" };
+    this.teachers.set(id, teacher);
+    return teacher;
+  }
+  async getTeacher(id: number): Promise<Teacher | undefined> { return this.teachers.get(id); }
+  async getTeacherByEmail(email: string): Promise<Teacher | undefined> {
+    return Array.from(this.teachers.values()).find(t => t.email === email);
+  }
+  async getTeachers(): Promise<Teacher[]> { return Array.from(this.teachers.values()); }
+  async deleteTeacher(id: number): Promise<void> { this.teachers.delete(id); }
+
+  async createClass(c: InsertClass): Promise<Class> {
+    const id = this.nextId.classes++;
+    const classObj: Class = { ...c, id, teacherId: c.teacherId ?? null };
+    this.classes.set(id, classObj);
+    return classObj;
+  }
+  async getClass(id: number): Promise<Class | undefined> { return this.classes.get(id); }
+  async getClassByName(name: string): Promise<Class | undefined> {
+    return Array.from(this.classes.values()).find(c => c.name === name);
+  }
+  async getClasses(teacherId?: number): Promise<Class[]> {
+    if (teacherId === -1) return Array.from(this.classes.values());
+    if (teacherId) return Array.from(this.classes.values()).filter(c => c.teacherId === teacherId);
+    return Array.from(this.classes.values());
+  }
+  async deleteClass(id: number): Promise<void> { this.classes.delete(id); }
+
+  async createStudent(s: InsertStudent): Promise<Student> {
+    const id = this.nextId.students++;
+    const student: Student = { ...s, id, extraPoints: s.extraPoints ?? 0 };
+    this.students.set(id, student);
+    return student;
+  }
+  async getStudentByName(name: string, classId: number): Promise<Student | undefined> {
+    return Array.from(this.students.values()).find(s => s.name === name && s.classId === classId);
+  }
+  async getStudents(classId: number): Promise<Student[]> {
+    return Array.from(this.students.values()).filter(s => s.classId === classId);
+  }
+  async updateStudentExtraPoints(id: number, points: number, reason: string): Promise<Student> {
+    const s = this.students.get(id);
+    if (!s) throw new Error("Student not found");
+    const oldPoints = s.extraPoints || 0;
+    const updated = { ...s, extraPoints: points };
+    this.students.set(id, updated);
+    this.studentLogs.push({ id: this.studentLogs.length + 1, studentId: id, points: points - oldPoints, reason, createdAt: new Date().toISOString() });
+    return updated;
+  }
+  async getStudentLogs(studentId: number): Promise<any[]> {
+    return this.studentLogs.filter(l => l.studentId === studentId);
+  }
+
+  async createActivity(a: InsertActivity): Promise<Activity> {
+    const id = this.nextId.activities++;
+    const activity: Activity = { ...a, id };
+    this.activities.set(id, activity);
+    return activity;
+  }
+  async getActivityByName(name: string, classId: number): Promise<Activity | undefined> {
+    return Array.from(this.activities.values()).find(a => a.name === name && a.classId === classId);
+  }
+  async getActivities(classId: number): Promise<Activity[]> {
+    return Array.from(this.activities.values()).filter(a => a.classId === classId);
+  }
+
+  async createGrade(g: InsertGrade): Promise<Grade> {
+    const id = this.nextId.grades++;
+    const grade: Grade = { ...g, id, reason: g.reason ?? null };
+    this.grades.set(id, grade);
+    return grade;
+  }
+  async getGrade(studentId: number, activityId: number): Promise<Grade | undefined> {
+    return Array.from(this.grades.values()).find(g => g.studentId === studentId && g.activityId === activityId);
+  }
+  async getGradeById(id: number): Promise<Grade | undefined> { return this.grades.get(id); }
+  async updateGrade(id: number, value: number, reason?: string): Promise<Grade> {
+    const g = this.grades.get(id);
+    if (!g) throw new Error("Grade not found");
+    const updated = { ...g, value, reason: reason ?? g.reason };
+    this.grades.set(id, updated);
+    return updated;
+  }
+  async getGrades(): Promise<Grade[]> { return Array.from(this.grades.values()); }
+  async getAllGradesWithDetails(classId: number): Promise<any[]> {
+    const classStudents = await this.getStudents(classId);
+    const studentIds = new Set(classStudents.map(s => s.id));
+    return Array.from(this.grades.values())
+      .filter(g => studentIds.has(g.studentId))
+      .map(g => {
+        const s = this.students.get(g.studentId);
+        const a = this.activities.get(g.activityId);
+        return {
+          gradeId: g.id,
+          value: g.value,
+          studentId: g.studentId,
+          studentName: s?.name,
+          activityId: g.activityId,
+          activityName: a?.name
+        };
+      });
+  }
+
+  async getSetting(key: string, classId?: number): Promise<string | undefined> {
+    return this.settings.get(`${key}_${classId || 'global'}`);
+  }
+  async updateSetting(key: string, value: string, classId?: number): Promise<void> {
+    this.settings.set(`${key}_${classId || 'global'}`, value);
+  }
+
+  async getSystemStats(): Promise<{ teachers: number, classes: number, students: number }> {
+    return {
+      teachers: this.teachers.size,
+      classes: this.classes.size,
+      students: this.students.size
+    };
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -62,6 +219,14 @@ export class DatabaseStorage implements IStorage {
     return t;
   }
 
+  async getTeachers(): Promise<Teacher[]> {
+    return await db.select().from(teachers);
+  }
+
+  async deleteTeacher(id: number): Promise<void> {
+    await db.delete(teachers).where(eq(teachers.id, id));
+  }
+
   async createClass(c: InsertClass): Promise<Class> {
     const [created] = await db.insert(classes).values(c).returning();
     return created;
@@ -77,8 +242,16 @@ export class DatabaseStorage implements IStorage {
     return c;
   }
 
+  async deleteClass(id: number): Promise<void> {
+    // In a real app we might want to delete students/grades too or use cascades
+    await db.delete(classes).where(eq(classes.id, id));
+  }
+
   async getClasses(teacherId?: number): Promise<Class[]> {
     if (teacherId) {
+      if (teacherId === -1) {
+        return await db.select().from(classes);
+      }
       const teacher = await this.getTeacher(teacherId);
       if (teacher?.role === "admin") {
         return await db.select().from(classes);
@@ -89,7 +262,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSetting(key: string, classId?: number): Promise<string | undefined> {
-    const query = classId 
+    const query = classId
       ? and(eq(settings.key, key), eq(settings.classId, classId))
       : eq(settings.key, key);
     const [setting] = await db.select().from(settings).where(query);
@@ -99,7 +272,7 @@ export class DatabaseStorage implements IStorage {
   async updateSetting(key: string, value: string, classId?: number): Promise<void> {
     const existing = await this.getSetting(key, classId);
     if (existing !== undefined) {
-      const query = classId 
+      const query = classId
         ? and(eq(settings.key, key), eq(settings.classId, classId))
         : eq(settings.key, key);
       await db.update(settings).set({ value }).where(query);
@@ -125,12 +298,12 @@ export class DatabaseStorage implements IStorage {
   async updateStudentExtraPoints(id: number, points: number, reason: string): Promise<Student> {
     const [student] = await db.select().from(students).where(eq(students.id, id));
     const oldPoints = student?.extraPoints || 0;
-    
+
     const [updated] = await db.update(students)
       .set({ extraPoints: points })
       .where(eq(students.id, id))
       .returning();
-    
+
     await db.insert(studentLogs).values({
       studentId: id,
       points: points - oldPoints,
@@ -195,13 +368,26 @@ export class DatabaseStorage implements IStorage {
       activityId: activities.id,
       activityName: activities.name
     })
-    .from(grades)
-    .innerJoin(students, eq(grades.studentId, students.id))
-    .innerJoin(activities, eq(grades.activityId, activities.id))
-    .where(eq(students.classId, classId));
-    
+      .from(grades)
+      .innerJoin(students, eq(grades.studentId, students.id))
+      .innerJoin(activities, eq(grades.activityId, activities.id))
+      .where(eq(students.classId, classId));
+
     return result;
+  }
+
+  async getSystemStats(): Promise<{ teachers: number, classes: number, students: number }> {
+    const [tCount] = await db.select({ count: sql<number>`count(*)` }).from(teachers);
+    const [cCount] = await db.select({ count: sql<number>`count(*)` }).from(classes);
+    const [sCount] = await db.select({ count: sql<number>`count(*)` }).from(students);
+
+    return {
+      teachers: Number(tCount.count),
+      classes: Number(cCount.count),
+      students: Number(sCount.count)
+    };
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemStorage();
+

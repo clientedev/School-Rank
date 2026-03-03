@@ -11,17 +11,22 @@ function parseWithLogging<T>(schema: z.ZodSchema<T>, data: unknown, label: strin
   return result.data;
 }
 
-export function useDashboard() {
+export function useDashboard(classId?: number) {
   return useQuery({
-    queryKey: [api.dashboard.path],
+    queryKey: [api.dashboard.path, classId],
     queryFn: async () => {
-      const res = await fetch(api.dashboard.path, { credentials: "include" });
+      const url = classId
+        ? `${api.dashboard.path}?classId=${classId}`
+        : api.dashboard.path;
+
+      const res = await fetch(url, { credentials: "include" });
       if (!res.ok) throw new Error("Failed to fetch dashboard data");
       const data = await res.json();
       return parseWithLogging(api.dashboard.responses[200], data, "dashboard.get");
     },
   });
 }
+
 
 export function useBatchUploadGrades() {
   const queryClient = useQueryClient();
@@ -34,7 +39,7 @@ export function useBatchUploadGrades() {
         body: JSON.stringify(validated),
         credentials: "include",
       });
-      
+
       if (!res.ok) {
         if (res.status === 400) {
           const err = await res.json();
@@ -56,14 +61,14 @@ export function useUpdateGrade() {
     mutationFn: async ({ id, value, studentId, activityId }: { id: number; value: number; studentId?: number; activityId?: number }) => {
       const url = buildUrl(api.grades.update.path, { id });
       const validated = api.grades.update.input.parse({ value, studentId, activityId });
-      
+
       const res = await fetch(url, {
         method: api.grades.update.method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(validated),
         credentials: "include",
       });
-      
+
       if (!res.ok) throw new Error("Failed to update grade");
       return parseWithLogging(api.grades.update.responses[200], await res.json(), "grades.update");
     },
@@ -84,7 +89,7 @@ export function useCreateActivity() {
         body: JSON.stringify(validated),
         credentials: "include",
       });
-      
+
       if (!res.ok) throw new Error("Failed to create activity");
       return parseWithLogging(api.activities.create.responses[201], await res.json(), "activities.create");
     },

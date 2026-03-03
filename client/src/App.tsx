@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
+import AdminDashboard from "@/pages/AdminDashboard";
+import TeacherClasses from "@/pages/TeacherClasses";
 import PublicRanking from "@/pages/PublicRanking";
 import StudentProfile from "@/pages/StudentProfile";
 import Analytics from "@/pages/Analytics";
@@ -14,191 +16,88 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { LogOut, RefreshCw } from "lucide-react";
+import { LogOut, RefreshCw, GraduationCap, Lock, Mail } from "lucide-react";
 
 function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleLogin = async () => {
+    setIsLoading(true);
     try {
       const res = await apiRequest("POST", "/api/login", { email, password });
       const data = await res.json();
       onLogin(data.teacherId);
     } catch (e) {
       toast({ title: "Erro", description: "Usuário ou senha inválida", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
-      <Card className="w-full max-w-md shadow-xl border-t-4 border-t-primary">
-        <CardHeader className="space-y-1 pb-8">
-          <div className="flex justify-center mb-4">
-            <div className="bg-primary/10 p-3 rounded-full">
-              <span className="text-3xl">👨‍🏫</span>
+    <div className="min-h-screen flex items-center justify-center bg-[#f8fafc] p-4 relative overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px]"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-violet-500/5 rounded-full blur-[120px]"></div>
+
+      <Card className="w-full max-w-md shadow-2xl border-none rounded-[32px] overflow-hidden bg-white/80 backdrop-blur-xl">
+        <div className="h-3 bg-gradient-to-r from-primary via-violet-500 to-indigo-500"></div>
+        <CardHeader className="space-y-4 pb-8 pt-10 px-10">
+          <div className="flex justify-center flex-col items-center gap-4">
+            <div className="bg-primary/10 p-4 rounded-3xl text-primary shadow-inner">
+              <GraduationCap className="h-10 w-10" />
+            </div>
+            <div className="text-center">
+              <CardTitle className="text-3xl font-black text-slate-800 tracking-tight">
+                School-Rank
+              </CardTitle>
+              <p className="text-slate-500 font-medium mt-1">Gestão de notas e desempenho</p>
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold text-center tracking-tight">
-            Ranking da Turma
-          </CardTitle>
-          <p className="text-center text-muted-foreground">Gestão de notas e desempenho</p>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Input 
-              placeholder="Usuário ou Email" 
-              value={email} 
-              onChange={e => setEmail(e.target.value)}
-              className="h-12 text-base"
-            />
+        <CardContent className="space-y-6 px-10 pb-10">
+          <div className="space-y-4">
+            <div className="space-y-2 relative">
+              <label className="text-xs font-bold uppercase text-slate-400 ml-1">Usuário / Email</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Input
+                  placeholder="admin@escola.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  className="h-14 pl-12 bg-slate-50 border-slate-100 rounded-2xl text-base focus-visible:ring-primary/20 transition-all font-medium"
+                />
+              </div>
+            </div>
+            <div className="space-y-2 relative">
+              <label className="text-xs font-bold uppercase text-slate-400 ml-1">Senha de Acesso</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+                <Input
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="h-14 pl-12 bg-slate-50 border-slate-100 rounded-2xl text-base focus-visible:ring-primary/20 transition-all"
+                />
+              </div>
+            </div>
           </div>
-          <div className="space-y-2">
-            <Input 
-              type="password" 
-              placeholder="Senha" 
-              value={password} 
-              onChange={e => setPassword(e.target.value)}
-              className="h-12 text-base"
-            />
-          </div>
-          <Button className="w-full h-12 text-lg font-semibold mt-2 shadow-lg hover:shadow-primary/20 transition-all" onClick={handleLogin}>
-            Acessar Sistema
-          </Button>
-        </CardContent>
-        <div className="px-6 pb-6 text-center">
-          <p className="text-xs text-muted-foreground uppercase tracking-widest">Acesso restrito a professores</p>
-        </div>
-      </Card>
-    </div>
-  );
-}
-
-function AdminPanel({ onLogout }: { onLogout: () => void }) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const { toast } = useToast();
-
-  const handleCreateTeacher = async () => {
-    try {
-      await apiRequest("POST", "/api/register", { name, email, password });
-      toast({ title: "Sucesso", description: "Professor cadastrado com sucesso" });
-      setName("");
-      setEmail("");
-      setPassword("");
-    } catch (e) {
-      toast({ title: "Erro", description: "Falha ao cadastrar professor", variant: "destructive" });
-    }
-  };
-
-  return (
-    <Card className="w-full max-w-4xl mx-auto border-primary/20 bg-primary/5 shadow-lg overflow-hidden">
-      <CardHeader className="bg-primary text-primary-foreground py-4">
-        <div className="flex justify-between items-center">
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <span className="bg-white text-primary px-2 py-0.5 rounded text-xs font-black">ADMIN</span>
-            Painel de Controle
-          </CardTitle>
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            onClick={onLogout}
-            className="font-bold"
+          <Button
+            className="w-full h-14 rounded-2xl text-lg font-bold shadow-xl shadow-primary/25 hover:shadow-primary/40 transition-all duration-300 flex items-center justify-center gap-2 bg-slate-900"
+            onClick={handleLogin}
+            disabled={isLoading}
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Desligar Sistema
+            {isLoading ? "Acessando..." : "Entrar no Painel"}
           </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          <h3 className="font-semibold text-lg border-b pb-2">Cadastrar Novo Professor</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-muted-foreground">Nome Completo</label>
-              <Input placeholder="Ex: João Silva" value={name} onChange={e => setName(e.target.value)} className="bg-background" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-muted-foreground">Email/Usuário</label>
-              <Input placeholder="usuario@email.com" value={email} onChange={e => setEmail(e.target.value)} className="bg-background" />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-muted-foreground">Senha Provisória</label>
-              <Input type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="bg-background" />
-            </div>
-            <Button className="w-full font-bold shadow-md" onClick={handleCreateTeacher}>
-              Cadastrar Professor
-            </Button>
+          <div className="text-center pt-2">
+            <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">SISTEMA EDUCACIONAL</p>
           </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function ClassSelector({ teacherId, onSelect, onLogout }: { teacherId: number, onSelect: (id: number) => void, onLogout: () => void }) {
-  const [newClassName, setNewClassName] = useState("");
-  const { toast } = useToast();
-  const { data: classes, refetch } = useQuery<any[]>({ queryKey: ["/api/classes"] });
-  const isAdmin = teacherId === -1;
-
-  const handleCreateClass = async () => {
-    if (!newClassName.trim()) {
-      toast({ title: "Erro", description: "O nome da turma não pode estar vazio", variant: "destructive" });
-      return;
-    }
-    try {
-      await apiRequest("POST", "/api/classes", { name: newClassName, password: "default-password" });
-      setNewClassName("");
-      refetch();
-      toast({ title: "Sucesso", description: "Turma criada com sucesso" });
-    } catch (e) {
-      toast({ title: "Erro", description: "Falha ao criar turma", variant: "destructive" });
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-background p-4 space-y-8">
-      {isAdmin && <AdminPanel onLogout={onLogout} />}
-
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Suas Turmas</h1>
-          <div className="flex gap-2">
-            <Input 
-              placeholder="Nova Turma" 
-              value={newClassName} 
-              onChange={e => setNewClassName(e.target.value)}
-              className="w-48"
-            />
-            <Button onClick={handleCreateClass} className="font-bold">Criar Turma</Button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {classes?.map(c => (
-            <Card 
-              key={c.id} 
-              className="cursor-pointer hover:border-primary hover:shadow-md transition-all group"
-              onClick={() => onSelect(c.id)}
-            >
-              <CardHeader>
-                <CardTitle className="group-hover:text-primary transition-colors">{c.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">Clique para gerenciar esta turma</p>
-              </CardContent>
-            </Card>
-          ))}
-          {classes?.length === 0 && (
-            <p className="col-span-full text-center py-12 text-muted-foreground bg-muted/20 rounded-lg border-2 border-dashed">
-              Nenhuma turma encontrada. Crie sua primeira turma acima.
-            </p>
-          )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -212,7 +111,27 @@ function Router() {
     const saved = localStorage.getItem("classId");
     return saved ? Number(saved) : null;
   });
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      if (teacherId && !isPublicRoute) {
+        try {
+          const res = await fetch("/api/me", { credentials: "include" });
+          if (res.status === 401) {
+            setTeacherId(null);
+            localStorage.removeItem("teacherId");
+            localStorage.removeItem("classId");
+            setLocation("/");
+          }
+        } catch (e) {
+          console.error("Session check failed", e);
+        }
+      }
+    };
+    checkSession();
+  }, [teacherId, location]);
+
 
   const handleLogout = async () => {
     try {
@@ -227,38 +146,78 @@ function Router() {
     }
   };
 
+  const handleSelectClass = (id: number) => {
+    setClassId(id);
+    localStorage.setItem("classId", id.toString());
+  };
+
+  const handleBackToClasses = () => {
+    setClassId(null);
+    localStorage.removeItem("classId");
+  };
+
   const isPublicRoute = location.startsWith("/ranking/") || location.startsWith("/student/");
 
   if (!teacherId && !isPublicRoute) {
-    return <Login onLogin={setTeacherId} />;
+    return <Login onLogin={(id) => {
+      setTeacherId(id);
+      localStorage.setItem("teacherId", id.toString());
+    }} />;
   }
 
+  // Admin routing
+  if (teacherId === -1 && !isPublicRoute) {
+    if (classId) {
+      return (
+        <div className="relative">
+          <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+            <Button variant="outline" size="lg" className="shadow-2xl bg-white rounded-2xl border-none font-bold text-slate-700" onClick={handleBackToClasses}>
+              <RefreshCw className="w-5 h-5 mr-2 text-primary" />
+              Trocar Turma
+            </Button>
+            <Button variant="destructive" size="lg" className="shadow-2xl rounded-2xl font-bold border-none" onClick={handleLogout}>
+              <LogOut className="w-5 h-5 mr-2" />
+              Sair
+            </Button>
+          </div>
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/analytics" component={Analytics} />
+            <Route component={NotFound} />
+          </Switch>
+        </div>
+      );
+    }
+    return <AdminDashboard onLogout={handleLogout} />;
+  }
+
+  // Teacher routing
   if (teacherId && !classId && !isPublicRoute) {
-    return <ClassSelector teacherId={teacherId} onSelect={setClassId} onLogout={handleLogout} />;
+    return <TeacherClasses onSelect={handleSelectClass} onLogout={handleLogout} />;
   }
 
   return (
     <div className="relative">
-      {teacherId && (
-        <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
+      {teacherId && !isPublicRoute && (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
           {classId && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="shadow-md bg-background"
-              onClick={() => setClassId(null)}
+            <Button
+              variant="outline"
+              size="lg"
+              className="shadow-2xl bg-white rounded-2xl border-none font-bold text-slate-700"
+              onClick={handleBackToClasses}
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <RefreshCw className="w-5 h-5 mr-2 text-violet-600" />
               Trocar Turma
             </Button>
           )}
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            className="shadow-md"
+          <Button
+            variant="destructive"
+            size="lg"
+            className="shadow-2xl rounded-2xl font-bold border-none"
             onClick={handleLogout}
           >
-            <LogOut className="w-4 h-4 mr-2" />
+            <LogOut className="w-5 h-5 mr-2" />
             Sair
           </Button>
         </div>
@@ -286,3 +245,4 @@ function App() {
 }
 
 export default App;
+
