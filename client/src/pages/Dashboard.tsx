@@ -5,10 +5,11 @@ import { StatsCards } from "@/components/StatsCards";
 import { RankingsTable } from "@/components/RankingsTable";
 import { PerformanceChart } from "@/components/PerformanceChart";
 import { ExportButtons } from "@/components/ExportButtons";
-import { UploadCloud, LayoutDashboard, FileSpreadsheet, Loader2, Edit2, Share2 } from "lucide-react";
+import { UploadCloud, LayoutDashboard, FileSpreadsheet, Loader2, Edit2, Share2, BarChart3 } from "lucide-react";
 import { api, buildUrl } from "@shared/routes";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 
 export default function Dashboard() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -127,7 +128,13 @@ export default function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
         
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-4 gap-3">
+           <Link href="/analytics">
+             <button className="px-4 py-2 rounded-xl text-sm font-semibold bg-primary/10 text-primary border border-primary/20 shadow-sm hover:bg-primary/20 transition-all flex items-center gap-2">
+               <BarChart3 className="w-4 h-4" />
+               Gráficos
+             </button>
+           </Link>
            <button
               onClick={() => {
                 const name = prompt("Nome da Atividade:");
@@ -181,27 +188,6 @@ export default function Dashboard() {
                   rankings={data.rankings} 
                   activities={data.activities} 
                 />
-              </div>
-
-              {/* Bottom Section: Chart & Info */}
-              <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                <div className="xl:col-span-2">
-                  <PerformanceChart rankings={data.rankings} />
-                </div>
-                
-                <div className="glass-card rounded-3xl p-6 h-fit">
-                  <h3 className="text-lg font-bold font-display text-foreground mb-2">Informações</h3>
-                  <ul className="space-y-3 mt-4">
-                    <li className="flex items-start gap-3 text-sm text-muted-foreground">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5" />
-                      Clique em qualquer nota na tabela para editá-la manualmente. O ranking será atualizado.
-                    </li>
-                    <li className="flex items-start gap-3 text-sm text-muted-foreground">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5" />
-                      Clique no nome de um aluno para ver seu perfil individual e histórico de pontos.
-                    </li>
-                  </ul>
-                </div>
               </div>
             </div>
           </>
