@@ -8,12 +8,19 @@ export default function StudentProfile() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
 
+  const classId = localStorage.getItem("classId");
+
   const { data: logs, isLoading: logsLoading } = useQuery({
     queryKey: [`/api/students/${id}/logs`],
   });
 
   const { data: dashboardData, isLoading: dashLoading } = useQuery({
-    queryKey: ["/api/dashboard"],
+    queryKey: [api.dashboard.path, { classId }],
+    queryFn: async () => {
+      const res = await fetch(`${api.dashboard.path}?classId=${classId}`);
+      if (!res.ok) throw new Error("Failed to fetch dashboard data");
+      return res.json();
+    }
   });
 
   if (logsLoading || dashLoading) {

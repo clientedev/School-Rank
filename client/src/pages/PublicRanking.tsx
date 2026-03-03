@@ -1,11 +1,20 @@
-import { useDashboard } from "@/hooks/use-dashboard";
-import { RankingsTable } from "@/components/RankingsTable";
-import { StatsCards } from "@/components/StatsCards";
-import { LayoutDashboard, Trophy, Loader2, Star } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { useParams } from "wouter";
+import { api } from "@shared/routes";
+import { Trophy, Loader2, Star } from "lucide-react";
 import { Link } from "wouter";
 
 export default function PublicRanking() {
-  const { data, isLoading } = useDashboard();
+  const { classId } = useParams();
+  
+  const { data, isLoading } = useQuery({
+    queryKey: [api.dashboard.path, { classId }],
+    queryFn: async () => {
+      const res = await fetch(`${api.dashboard.path}?classId=${classId}`);
+      if (!res.ok) throw new Error("Failed to fetch dashboard data");
+      return res.json();
+    }
+  });
 
   if (isLoading) {
     return (
