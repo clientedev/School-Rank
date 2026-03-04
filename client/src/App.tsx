@@ -85,6 +85,11 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
                   className="h-14 pl-12 bg-slate-50 border-slate-100 rounded-2xl text-base focus-visible:ring-primary/20 transition-all"
                 />
               </div>
+              <div className="flex justify-end pt-1">
+                <a href="#" className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
+                  Esqueceu a senha?
+                </a>
+              </div>
             </div>
           </div>
           <Button
