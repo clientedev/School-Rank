@@ -10,6 +10,7 @@ import TeacherClasses from "@/pages/TeacherClasses";
 import PublicRanking from "@/pages/PublicRanking";
 import StudentProfile from "@/pages/StudentProfile";
 import Analytics from "@/pages/Analytics";
+import Attendance from "@/pages/Attendance";
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -183,6 +184,7 @@ function Router() {
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/analytics" component={Analytics} />
+            <Route path="/frequencia" component={Attendance} />
             <Route component={NotFound} />
           </Switch>
         </div>
@@ -225,6 +227,7 @@ function Router() {
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/analytics" component={Analytics} />
+        <Route path="/frequencia" component={Attendance} />
         <Route path="/ranking/:classId" component={PublicRanking} />
         <Route path="/student/:id" component={StudentProfile} />
         <Route component={NotFound} />

@@ -3,6 +3,7 @@ import { useParams } from "wouter";
 import { Loader2, Trophy, Star, History, TrendingUp, Zap, Shield, Target, Award, Swords } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboard } from "@/hooks/use-dashboard";
+import { useStudentAttendance } from "@/hooks/use-attendance";
 
 export default function StudentProfile() {
   const { id } = useParams();
@@ -23,7 +24,9 @@ export default function StudentProfile() {
 
   const { data: dashboardData, isLoading: dashLoading } = useDashboard(classId || 0);
 
-  if (logsLoading || dashLoading) {
+  const { data: attendanceData, isLoading: attLoading } = useStudentAttendance(Number(id));
+
+  if (logsLoading || dashLoading || attLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ background: "linear-gradient(135deg, #0f0c29, #302b63, #24243e)" }}>
         <div className="flex flex-col items-center gap-4">
@@ -247,7 +250,40 @@ export default function StudentProfile() {
         </div>
 
         {/* Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Frequência (Novo) */}
+          <div className="card-gamer rounded-2xl overflow-hidden">
+            <div className="p-5 border-b" style={{ borderColor: "rgba(139,92,246,0.2)" }}>
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(248,113,113,0.1)" }}>
+                  <Shield className="w-5 h-5 text-red-500" />
+                </div>
+                <h3 className="font-bold text-white gamer-font text-sm uppercase tracking-wider">Faltas & Atrasos</h3>
+              </div>
+            </div>
+            <div className="p-5 space-y-3">
+              {attendanceData && attendanceData.length > 0 ? (
+                attendanceData.map((att: any) => (
+                  <div key={att.id} className="log-row flex justify-between items-center">
+                    <div>
+                      <div className="text-white font-bold mb-1">
+                        {att.status === 'F' ? 'Falta Registrada' : 'Atraso Registrado'}
+                      </div>
+                      <div className="text-xs px-2 py-1 inline-block rounded-md" style={{ background: "rgba(255,255,255,0.05)", color: "#9ca3af" }}>
+                        {att.date.split('-').reverse().join('/')}
+                      </div>
+                    </div>
+                    <div className="text-xl font-black gamer-font" style={{ color: att.status === 'F' ? '#f87171' : '#f59e0b' }}>
+                      {att.status}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500 italic">Frequência perfeita!</div>
+              )}
+            </div>
+          </div>
+
           {/* Grades */}
           <div className="card-gamer rounded-2xl overflow-hidden">
             <div className="p-5 border-b" style={{ borderColor: "rgba(139,92,246,0.2)" }}>

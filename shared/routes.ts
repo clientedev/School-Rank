@@ -83,7 +83,7 @@ export const api = {
     update: {
       method: 'PUT' as const,
       path: '/api/grades/:id' as const,
-      input: z.object({ 
+      input: z.object({
         value: z.number(),
         studentId: z.number().optional(),
         activityId: z.number().optional()
@@ -96,6 +96,75 @@ export const api = {
           value: z.number()
         }),
         404: errorSchemas.notFound,
+      }
+    }
+  },
+
+  // ==========================================
+  // FREQUÊNCIA
+  // ==========================================
+  attendance: {
+    getDaily: {
+      method: 'GET' as const,
+      path: '/api/attendance' as const,
+      responses: {
+        200: z.array(z.object({
+          id: z.number(),
+          studentId: z.number(),
+          classId: z.number(),
+          date: z.string(),
+          status: z.string(),
+          pointsApplied: z.number()
+        }))
+      }
+    },
+    save: {
+      method: 'POST' as const,
+      path: '/api/attendance' as const,
+      input: z.object({
+        studentId: z.number(),
+        classId: z.number(),
+        date: z.string(),
+        status: z.string()
+      }),
+      responses: {
+        200: z.object({
+          id: z.number(),
+          status: z.string()
+        })
+      }
+    },
+    getReport: {
+      method: 'GET' as const,
+      path: '/api/attendance/report' as const,
+      responses: {
+        200: z.array(z.object({
+          id: z.number(),
+          studentId: z.number(),
+          date: z.string(),
+          status: z.string(),
+          pointsApplied: z.number()
+        }))
+      }
+    },
+    getSchedule: {
+      method: 'GET' as const,
+      path: '/api/schedule' as const,
+      responses: {
+        200: z.object({
+          weekdays: z.string()
+        })
+      }
+    },
+    saveSchedule: {
+      method: 'POST' as const,
+      path: '/api/schedule' as const,
+      input: z.object({
+        classId: z.number(),
+        weekdays: z.string()
+      }),
+      responses: {
+        200: z.object({ success: z.boolean() })
       }
     }
   }

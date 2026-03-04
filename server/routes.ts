@@ -366,5 +366,90 @@ export async function registerRoutes(
     }
   });
 
+  // ==========================================
+  // MÓDULO DE FREQUÊNCIA
+  // ==========================================
+
+  app.get("/api/attendance", requireAuth, async (req, res) => {
+    try {
+      const classId = (req.session as any).classId || Number(req.query.classId);
+      const date = String(req.query.date);
+      if (!classId || !date) return res.status(400).json({ message: "Faltam parâmetros" });
+
+      const records = await storage.getAttendance(classId, date);
+      res.json(records);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Erro ao buscar frequência" });
+    }
+  });
+
+  app.post("/api/attendance", requireAuth, async (req, res) => {
+    try {
+      const classId = (req.session as any).classId || Number(req.body.classId);
+      const { studentId, date, status } = req.body;
+      if (!classId || !studentId || !date || !status) return res.status(400).json({ message: "Faltam parâmetros" });
+
+      const record = await storage.upsertAttendance({ studentId, classId, date, status });
+      res.json(record);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Erro ao salvar frequência" });
+    }
+  });
+
+  app.get("/api/attendance/report", requireAuth, async (req, res) => {
+    try {
+      const classId = (req.session as any).classId || Number(req.query.classId);
+      if (!classId) return res.status(400).json({ message: "Turma não informada" });
+
+      const records = await storage.getAttendanceReport(classId);
+      res.json(records);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Erro ao buscar relatório" });
+    }
+  });
+
+  app.get("/api/attendance/student/:id", async (req, res) => {
+    try {
+      const studentId = Number(req.params.id);
+      const records = await storage.getStudentAttendance(studentId);
+      res.json(records);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Erro ao buscar faltas do aluno" });
+    }
+  });
+
+  app.get("/api/schedule", requireAuth, async (req, res) => {
+    try {
+      const classId = (req.session as any).classId || Number(req.query.classId);
+      if (!classId) return res.status(400).json({ message: "Turma não informada" });
+
+      const schedule = await storage.getSchedule(classId);
+      res.json(schedule || { weekdays: "" });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Erro buscar dias de aula" });
+    }
+  });
+
+  app.post("/api/schedule", requireAuth, async (req, res) => {
+    try {
+      const classId = (req.session as any).classId || Number(req.body.classId);
+      const { weekdays } = req.body;
+      if (!classId || weekdays === undefined) return res.status(400).json({ message: "Faltam parâmetros" });
+
+      await storage.saveSchedule(classId, weekdays);
+      res.json({ success: true });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Erro ao salvar dias de aula" });
+    }
+  });
+
+  // ==========================================
+
   return httpServer;
 }

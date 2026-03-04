@@ -5,7 +5,7 @@ import { StatsCards } from "@/components/StatsCards";
 import { RankingsTable } from "@/components/RankingsTable";
 import { PerformanceChart } from "@/components/PerformanceChart";
 import { ExportButtons } from "@/components/ExportButtons";
-import { UploadCloud, LayoutDashboard, FileSpreadsheet, Loader2, Edit2, Share2, BarChart3 } from "lucide-react";
+import { UploadCloud, LayoutDashboard, FileSpreadsheet, Loader2, Edit2, Share2, BarChart3, CalendarCheck2 } from "lucide-react";
 import { api, buildUrl } from "@shared/routes";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -151,6 +151,12 @@ export default function Dashboard() {
             <button className="px-4 py-2 rounded-xl text-sm font-semibold bg-primary/10 text-primary border border-primary/20 shadow-sm hover:bg-primary/20 transition-all flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
               Gráficos
+            </button>
+          </Link>
+          <Link href="/frequencia">
+            <button className="px-4 py-2 rounded-xl text-sm font-semibold bg-primary/10 text-primary border border-primary/20 shadow-sm hover:bg-primary/20 transition-all flex items-center gap-2">
+              <CalendarCheck2 className="w-4 h-4" />
+              Frequência
             </button>
           </Link>
           <button

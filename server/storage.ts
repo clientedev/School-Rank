@@ -1,7 +1,9 @@
 import { db } from "./db";
 import {
   students, activities, grades, settings, studentLogs, classes, teachers,
+  attendance, classSchedule,
   type Student, type Activity, type Grade, type Class, type Teacher,
+  type Attendance, type ClassSchedule,
   type InsertStudent, type InsertActivity, type InsertGrade, type InsertClass, type InsertTeacher
 } from "@shared/schema";
 import { eq, and, sql } from "drizzle-orm";
@@ -48,6 +50,14 @@ export interface IStorage {
 
   // Admin Stats
   getSystemStats(): Promise<{ teachers: number, classes: number, students: number }>;
+
+  // --- Frequência ---
+  getAttendance(classId: number, date: string): Promise<Attendance[]>;
+  upsertAttendance(data: { studentId: number; classId: number; date: string; status: string }): Promise<Attendance>;
+  getAttendanceReport(classId: number): Promise<Attendance[]>;
+  getStudentAttendance(studentId: number): Promise<Attendance[]>;
+  getSchedule(classId: number): Promise<ClassSchedule | undefined>;
+  saveSchedule(classId: number, weekdays: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -58,6 +68,8 @@ export class MemStorage implements IStorage {
   private grades: Map<number, Grade>;
   private studentLogs: any[];
   private settings: Map<string, string>;
+  private attendance: Map<number, Attendance>;
+  private classSchedule: Map<number, ClassSchedule>;
   private nextId: { [key: string]: number };
 
   constructor() {
@@ -68,7 +80,9 @@ export class MemStorage implements IStorage {
     this.grades = new Map();
     this.studentLogs = [];
     this.settings = new Map();
-    this.nextId = { teachers: 1, classes: 1, students: 1, activities: 1, grades: 1 };
+    this.attendance = new Map();
+    this.classSchedule = new Map();
+    this.nextId = { teachers: 1, classes: 1, students: 1, activities: 1, grades: 1, attendance: 1, classSchedule: 1 };
 
     // Initial Demo Data
     this.createTeacher({ name: "Professor Demo", email: "professor@demo.com", password: "123", role: "teacher" });
@@ -205,6 +219,69 @@ export class MemStorage implements IStorage {
       classes: this.classes.size,
       students: this.students.size
     };
+  }
+
+  // --- Frequência MemStorage ---
+  async getAttendance(classId: number, date: string): Promise<Attendance[]> {
+    return Array.from(this.attendance.values()).filter(a => a.classId === classId && a.date === date);
+  }
+
+  async upsertAttendance(data: { studentId: number; classId: number; date: string; status: string }): Promise<Attendance> {
+    let existing = Array.from(this.attendance.values()).find(a => a.studentId === data.studentId && a.date === data.date);
+
+    // Calcula pontos do novo status
+    let newPoints = 0;
+    if (data.status === "F") newPoints = -5;
+    if (data.status === "A") newPoints = -2;
+
+    // Se já existia, reverte o desconto anterior
+    let pointsApplied = existing ? existing.pointsApplied : 0;
+
+    if (existing && existing.status !== data.status && pointsApplied !== 0) {
+      await this.updateStudentExtraPoints(data.studentId, (this.students.get(data.studentId)?.extraPoints || 0) - pointsApplied, `Estorno correção frequência (${existing.status})`);
+      pointsApplied = 0;
+    }
+
+    // Aplica novo desconto se necessário e diferente do anterior
+    if ((!existing || existing.status !== data.status) && newPoints !== 0) {
+      await this.updateStudentExtraPoints(data.studentId, (this.students.get(data.studentId)?.extraPoints || 0) + newPoints, `Desconto por ${data.status === 'F' ? 'falta' : 'atraso'}`);
+      pointsApplied = newPoints;
+    } else if (newPoints === 0) {
+      pointsApplied = 0;
+    }
+
+    if (existing) {
+      const updated = { ...existing, status: data.status, pointsApplied };
+      this.attendance.set(existing.id, updated);
+      return updated;
+    } else {
+      const id = this.nextId.attendance++;
+      const newAtt: Attendance = { ...data, id, pointsApplied };
+      this.attendance.set(id, newAtt);
+      return newAtt;
+    }
+  }
+
+  async getAttendanceReport(classId: number): Promise<Attendance[]> {
+    return Array.from(this.attendance.values()).filter(a => a.classId === classId);
+  }
+
+  async getStudentAttendance(studentId: number): Promise<Attendance[]> {
+    return Array.from(this.attendance.values()).filter(a => a.studentId === studentId && (a.status === "F" || a.status === "A"));
+  }
+
+  async getSchedule(classId: number): Promise<ClassSchedule | undefined> {
+    return Array.from(this.classSchedule.values()).find(s => s.classId === classId);
+  }
+
+  async saveSchedule(classId: number, weekdays: string): Promise<void> {
+    const existing = await this.getSchedule(classId);
+    if (existing) {
+      this.classSchedule.set(existing.id, { ...existing, weekdays });
+    } else {
+      const id = this.nextId.classSchedule++;
+      this.classSchedule.set(id, { id, classId, weekdays });
+    }
   }
 }
 
@@ -402,6 +479,81 @@ export class DatabaseStorage implements IStorage {
       classes: Number(cCount.count),
       students: Number(sCount.count)
     };
+  }
+
+  // --- Frequência DatabaseStorage ---
+  async getAttendance(classId: number, date: string): Promise<Attendance[]> {
+    return await db.select().from(attendance).where(and(eq(attendance.classId, classId), eq(attendance.date, date)));
+  }
+
+  async upsertAttendance(data: { studentId: number; classId: number; date: string; status: string }): Promise<Attendance> {
+    const [existing] = await db.select().from(attendance)
+      .where(and(eq(attendance.studentId, data.studentId), eq(attendance.date, data.date)));
+
+    // Calcula pontos do novo status
+    let newPoints = 0;
+    if (data.status === "F") newPoints = -5;
+    if (data.status === "A") newPoints = -2;
+
+    let pointsApplied = existing ? existing.pointsApplied : 0;
+
+    // Se já existia, reverte o desconto anterior
+    if (existing && existing.status !== data.status && pointsApplied !== 0) {
+      const student = await this.getStudentByName((await db.select({ name: students.name }).from(students).where(eq(students.id, data.studentId)))[0]?.name || "", data.classId);
+      if (student) {
+        await this.updateStudentExtraPoints(data.studentId, (student.extraPoints || 0) - pointsApplied, `Estorno correção frequência (${existing.status})`);
+      }
+      pointsApplied = 0;
+    }
+
+    // Aplica novo desconto se necessário
+    if ((!existing || existing.status !== data.status) && newPoints !== 0) {
+      const student = await this.getStudentByName((await db.select({ name: students.name }).from(students).where(eq(students.id, data.studentId)))[0]?.name || "", data.classId);
+      if (student) {
+        await this.updateStudentExtraPoints(data.studentId, (student.extraPoints || 0) + newPoints, `Desconto por ${data.status === 'F' ? 'falta' : 'atraso'}`);
+      }
+      pointsApplied = newPoints;
+    } else if (newPoints === 0) {
+      pointsApplied = 0;
+    }
+
+    if (existing) {
+      const [updated] = await db.update(attendance)
+        .set({ status: data.status, pointsApplied })
+        .where(eq(attendance.id, existing.id)).returning();
+      return updated;
+    } else {
+      const [newAtt] = await db.insert(attendance)
+        .values({ ...data, pointsApplied }).returning();
+      return newAtt;
+    }
+  }
+
+  async getAttendanceReport(classId: number): Promise<Attendance[]> {
+    return await db.select().from(attendance).where(eq(attendance.classId, classId));
+  }
+
+  async getStudentAttendance(studentId: number): Promise<Attendance[]> {
+    // Busca apenas Faltas e Atrasos para o perfil do aluno
+    return await db.select().from(attendance)
+      .where(and(
+        eq(attendance.studentId, studentId),
+        sql`${attendance.status} IN ('F', 'A')`
+      )).orderBy(attendance.date);
+  }
+
+  async getSchedule(classId: number): Promise<ClassSchedule | undefined> {
+    const [schedule] = await db.select().from(classSchedule).where(eq(classSchedule.classId, classId));
+    return schedule;
+  }
+
+  async saveSchedule(classId: number, weekdays: string): Promise<void> {
+    const existing = await this.getSchedule(classId);
+    if (existing) {
+      await db.update(classSchedule).set({ weekdays }).where(eq(classSchedule.id, existing.id));
+    } else {
+      await db.insert(classSchedule).values({ classId, weekdays });
+    }
   }
 }
 
