@@ -23,16 +23,19 @@ export default function Dashboard() {
   const { toast } = useToast();
 
   const handleUpdateName = async () => {
+    if (!newName.trim()) return;
     try {
       const res = await fetch(api.settings.updateClassName.path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ className: newName })
+        body: JSON.stringify({ className: newName, classId })
       });
       if (res.ok) {
         queryClient.invalidateQueries({ queryKey: [api.dashboard.path] });
         setIsEditingName(false);
         toast({ title: "Nome atualizado!" });
+      } else {
+        toast({ title: "Erro ao atualizar", variant: "destructive" });
       }
     } catch (err) {
       toast({ title: "Erro ao atualizar", variant: "destructive" });

@@ -253,10 +253,12 @@ export async function registerRoutes(
   app.post(api.settings.updateClassName.path, requireAuth, async (req, res) => {
     try {
       const { className } = api.settings.updateClassName.input.parse(req.body);
-      const classId = (req.session as any).classId;
-      await storage.updateSetting("class_name", className, classId);
+      const classId = (req.session as any).classId || Number(req.body.classId);
+      if (!classId) return res.status(400).json({ message: "Turma não especificada" });
+      await storage.updateClass(classId, { name: className });
       res.json({ success: true });
     } catch (err) {
+      console.error("Failed to update class name:", err);
       res.status(500).json({ message: "Failed to update class name" });
     }
   });

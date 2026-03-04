@@ -20,6 +20,7 @@ export interface IStorage {
   getClassByName(name: string): Promise<Class | undefined>;
   getClasses(teacherId?: number): Promise<Class[]>;
   deleteClass(id: number): Promise<void>;
+  updateClass(id: number, data: { name: string }): Promise<Class>;
 
   // Students
   getStudentByName(name: string, classId: number): Promise<Student | undefined>;
@@ -108,6 +109,13 @@ export class MemStorage implements IStorage {
     return Array.from(this.classes.values());
   }
   async deleteClass(id: number): Promise<void> { this.classes.delete(id); }
+  async updateClass(id: number, data: { name: string }): Promise<Class> {
+    const c = this.classes.get(id);
+    if (!c) throw new Error("Class not found");
+    const updated = { ...c, ...data };
+    this.classes.set(id, updated);
+    return updated;
+  }
 
   async createStudent(s: InsertStudent): Promise<Student> {
     const id = this.nextId.students++;
@@ -245,6 +253,14 @@ export class DatabaseStorage implements IStorage {
   async deleteClass(id: number): Promise<void> {
     // In a real app we might want to delete students/grades too or use cascades
     await db.delete(classes).where(eq(classes.id, id));
+  }
+
+  async updateClass(id: number, data: { name: string }): Promise<Class> {
+    const [updated] = await db.update(classes)
+      .set({ name: data.name })
+      .where(eq(classes.id, id))
+      .returning();
+    return updated;
   }
 
   async getClasses(teacherId?: number): Promise<Class[]> {
