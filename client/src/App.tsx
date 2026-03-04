@@ -22,13 +22,14 @@ import { LogOut, RefreshCw, GraduationCap, Lock, Mail } from "lucide-react";
 function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handleLogin = async () => {
     setIsLoading(true);
     try {
-      const res = await apiRequest("POST", "/api/login", { email, password });
+      const res = await apiRequest("POST", "/api/login", { email, password, rememberMe });
       const data = await res.json();
       onLogin(data.teacherId);
     } catch (e) {
@@ -85,7 +86,15 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
                   className="h-14 pl-12 bg-slate-50 border-slate-100 rounded-2xl text-base focus-visible:ring-primary/20 transition-all"
                 />
               </div>
-              <div className="flex justify-end pt-1">
+              <div className="flex justify-between items-center pt-2">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${rememberMe ? 'bg-primary border-primary text-white' : 'border-slate-300 bg-white group-hover:border-primary/50'}`}>
+                    {rememberMe && <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3.5 h-3.5"><polyline points="20 6 9 17 4 12"></polyline></svg>}
+                  </div>
+                  <input type="checkbox" className="hidden" checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} />
+                  <span className="text-sm font-semibold text-slate-600 select-none">Lembrar de mim</span>
+                </label>
+
                 <a href="#" className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors">
                   Esqueceu a senha?
                 </a>
@@ -104,7 +113,7 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
           </div>
         </CardContent>
       </Card>
-    </div>
+    </div >
   );
 }
 

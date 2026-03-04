@@ -48,11 +48,14 @@ export async function registerRoutes(
 
   app.post("/api/login", async (req, res) => {
 
-    const { email, password } = req.body;
+    const { email, password, rememberMe } = req.body;
 
     // Admin login check
     if (email === "admin" && password === "admin123") {
       (req.session as any).teacherId = -1; // Special ID for admin
+      if (rememberMe) {
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 dias
+      }
       return res.json({ success: true, teacherId: -1, isAdmin: true });
     }
 
@@ -60,7 +63,12 @@ export async function registerRoutes(
     if (!t || t.password !== password) {
       return res.status(401).json({ message: "Email ou senha inválida" });
     }
+
     (req.session as any).teacherId = t.id;
+    if (rememberMe) {
+      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 dias
+    }
+
     res.json({ success: true, teacherId: t.id });
   });
 
