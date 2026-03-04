@@ -110,12 +110,46 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                       {getRankIcon(student.position)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-semibold text-foreground whitespace-nowrap">
-                    <Link href={`/student/${student.studentId}?classId=${localStorage.getItem("classId")}`} className="hover:text-primary transition-colors flex items-center gap-2 cursor-pointer group/link">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary text-xs font-bold group-hover/link:bg-primary group-hover/link:text-white transition-all">
-                        {student.studentName.charAt(0)}
+                  <td className="px-6 py-4 font-semibold text-foreground">
+                    <Link
+                      href={`/student/${student.studentId}?classId=${localStorage.getItem("classId")}`}
+                      className="flex items-center gap-3 cursor-pointer group/link hover:no-underline"
+                    >
+                      {/* Avatar */}
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-primary-foreground text-sm font-black shrink-0 transition-all group-hover/link:scale-110"
+                        style={{
+                          background: student.position === 1
+                            ? "linear-gradient(135deg, #f59e0b, #fbbf24)"
+                            : student.position === 2
+                              ? "linear-gradient(135deg, #64748b, #94a3b8)"
+                              : student.position === 3
+                                ? "linear-gradient(135deg, #b45309, #d97706)"
+                                : "linear-gradient(135deg, #7c3aed, #a78bfa)"
+                        }}
+                      >
+                        {student.studentName.charAt(0).toUpperCase()}
                       </div>
-                      {student.studentName}
+
+                      {/* Info */}
+                      <div className="min-w-0">
+                        <div className="font-bold text-foreground group-hover/link:text-primary transition-colors truncate">
+                          {student.studentName}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                            style={{
+                              background: "rgba(139,92,246,0.12)",
+                              color: "#7c3aed"
+                            }}
+                          >
+                            Nível {Math.floor(student.totalPoints / 10) + 1}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {student.activitiesCount} {student.activitiesCount === 1 ? "atividade" : "atividades"}
+                          </span>
+                        </div>
+                      </div>
                     </Link>
                   </td>
                   <td className="px-6 py-4 text-center">
