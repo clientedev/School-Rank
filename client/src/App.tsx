@@ -53,7 +53,7 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
             </div>
             <div className="text-center">
               <CardTitle className="text-3xl font-black text-slate-800 tracking-tight">
-                School-Rank
+                Ranking escolar
               </CardTitle>
               <p className="text-slate-500 font-medium mt-1">Gestão de notas e desempenho</p>
             </div>
