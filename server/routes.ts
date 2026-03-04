@@ -273,11 +273,11 @@ export async function registerRoutes(
 
   app.post(api.activities.create.path, requireAuth, async (req, res) => {
     try {
-      const classId = (req.session as any).classId;
       const input = api.activities.create.input.parse(req.body);
-      const activity = await storage.createActivity({ ...input, classId });
+      const activity = await storage.createActivity(input);
       res.status(201).json(activity);
     } catch (err) {
+      console.error("Failed to create activity:", err);
       res.status(500).json({ message: "Failed to create activity" });
     }
   });
