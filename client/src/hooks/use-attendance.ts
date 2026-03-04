@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@shared/routes";
 import { z } from "zod";
+import { apiRequest } from "@/lib/queryClient";
 
 export function useAttendance(classId: number, date: string) {
     return useQuery({
@@ -54,13 +55,11 @@ export function useSaveAttendance() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (data: z.infer<typeof api.attendance.save.input>) => {
-            const res = await fetch(api.attendance.save.path, {
-                method: api.attendance.save.method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-                credentials: "include",
-            });
-            if (!res.ok) throw new Error("Failed to save attendance");
+            const res = await apiRequest(
+                api.attendance.save.method,
+                api.attendance.save.path,
+                data
+            );
             return res.json();
         },
         onSuccess: (_, variables) => {
@@ -76,13 +75,11 @@ export function useSaveSchedule() {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: async (data: z.infer<typeof api.attendance.saveSchedule.input>) => {
-            const res = await fetch(api.attendance.saveSchedule.path, {
-                method: api.attendance.saveSchedule.method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
-                credentials: "include",
-            });
-            if (!res.ok) throw new Error("Failed to save schedule");
+            const res = await apiRequest(
+                api.attendance.saveSchedule.method,
+                api.attendance.saveSchedule.path,
+                data
+            );
             return res.json();
         },
         onSuccess: (_, variables) => {

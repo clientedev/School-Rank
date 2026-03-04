@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api, buildUrl } from "@shared/routes";
 import { z } from "zod";
+import { apiRequest } from "@/lib/queryClient";
 
 function parseWithLogging<T>(schema: z.ZodSchema<T>, data: unknown, label: string): T {
   const result = schema.safeParse(data);
@@ -83,15 +84,14 @@ export function useCreateActivity() {
   return useMutation({
     mutationFn: async (data: z.infer<typeof api.activities.create.input>) => {
       const validated = api.activities.create.input.parse(data);
-      const res = await fetch(api.activities.create.path, {
-        method: api.activities.create.method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(validated),
-        credentials: "include",
-      });
+      const res = await apiRequest(
+        api.activities.create.method,
+        api.activities.create.path,
+        validated
+      );
 
-      if (!res.ok) throw new Error("Failed to create activity");
-      return parseWithLogging(api.activities.create.responses[201], await res.json(), "activities.create");
+      const jsonRes = await res.json();
+      return parseWithLogging(api.activities.create.responses[201], jsonRes, "activities.create");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.dashboard.path] });
