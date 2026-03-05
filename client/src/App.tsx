@@ -12,6 +12,7 @@ import StudentProfile from "@/pages/StudentProfile";
 import Analytics from "@/pages/Analytics";
 import Attendance from "@/pages/Attendance";
 import { useState, useEffect } from "react";
+import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -113,6 +114,9 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
           </div>
         </CardContent>
       </Card>
+      <div className="absolute bottom-4 w-full">
+        <Footer />
+      </div>
     </div >
   );
 }
@@ -204,48 +208,65 @@ function Router() {
         </div>
       );
     }
-    return <AdminDashboard onLogout={handleLogout} />;
+    return (
+      <div className="flex flex-col min-h-screen">
+        <div className="flex-1">
+          <AdminDashboard onLogout={handleLogout} />
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   // Teacher routing
   if (teacherId && !classId && !isPublicRoute) {
-    return <TeacherClasses onSelect={handleSelectClass} onLogout={handleLogout} />;
+    return (
+      <div className="flex flex-col min-h-screen">
+        <div className="flex-1">
+          <TeacherClasses onSelect={handleSelectClass} onLogout={handleLogout} />
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   return (
-    <div className="relative">
-      {teacherId && !isPublicRoute && (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
-          {classId && (
+    <div className="relative flex flex-col min-h-screen">
+      <div className="flex-1">
+        {teacherId && !isPublicRoute && (
+          <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+            {classId && (
+              <Button
+                variant="outline"
+                size="lg"
+                className="shadow-2xl bg-white rounded-2xl border-none font-bold text-slate-700"
+                onClick={handleBackToClasses}
+              >
+                <RefreshCw className="w-5 h-5 mr-2 text-violet-600" />
+                Trocar Turma
+              </Button>
+            )}
             <Button
-              variant="outline"
+              variant="destructive"
               size="lg"
-              className="shadow-2xl bg-white rounded-2xl border-none font-bold text-slate-700"
-              onClick={handleBackToClasses}
+              className="shadow-2xl rounded-2xl font-bold border-none"
+              onClick={handleLogout}
             >
-              <RefreshCw className="w-5 h-5 mr-2 text-violet-600" />
-              Trocar Turma
+              <LogOut className="w-5 h-5 mr-2" />
+              Sair
             </Button>
-          )}
-          <Button
-            variant="destructive"
-            size="lg"
-            className="shadow-2xl rounded-2xl font-bold border-none"
-            onClick={handleLogout}
-          >
-            <LogOut className="w-5 h-5 mr-2" />
-            Sair
-          </Button>
-        </div>
-      )}
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/analytics" component={Analytics} />
-        <Route path="/frequencia" component={Attendance} />
-        <Route path="/ranking/:classId" component={PublicRanking} />
-        <Route path="/student/:id" component={StudentProfile} />
-        <Route component={NotFound} />
-      </Switch>
+          </div>
+        )}
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/analytics" component={Analytics} />
+          <Route path="/frequencia" component={Attendance} />
+          <Route path="/ranking/:classId" component={PublicRanking} />
+          <Route path="/student/:id" component={StudentProfile} />
+          <Route component={NotFound} />
+        </Switch>
+      </div>
+      <Footer />
     </div>
   );
 }
