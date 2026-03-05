@@ -3,19 +3,22 @@ import { useLocation } from "wouter";
 
 const Footer: React.FC = () => {
     const [location] = useLocation();
-    const isStudentPage = location.startsWith("/student/");
+    const isGamerPage = location.startsWith("/student/") || location.startsWith("/ranking/");
 
-    if (isStudentPage) {
+    if (isGamerPage) {
         return (
-            <footer className="w-full py-4 mt-auto border-t border-emerald-500/20 bg-slate-950 shadow-[0_-4px_20px_rgba(16,185,129,0.1)]">
-                <div className="container mx-auto px-4 text-center">
-                    <p className="text-[10px] sm:text-[11px] font-bold text-emerald-500/70 tracking-[0.15em] uppercase font-mono">
+            <footer className="w-full py-6 mt-auto border-t border-emerald-500/20 bg-[#0a0a0c] relative overflow-hidden">
+                {/* Gamer Glow Effect */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
+
+                <div className="container mx-auto px-4 text-center relative z-10">
+                    <p className="text-[10px] sm:text-[11px] font-black text-emerald-500/60 tracking-[0.2em] uppercase font-mono">
                         Ranking Escolar — desenvolvido por{" "}
                         <a
                             href="https://br.linkedin.com/in/gabriel-eduardo-almeida"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-emerald-400 hover:text-emerald-300 transition-all hover:drop-shadow-[0_0_8px_rgba(52,211,153,0.8)] decoration-emerald-500/50 underline-offset-4"
+                            className="text-emerald-400 hover:text-emerald-200 transition-all duration-300 hover:drop-shadow-[0_0_10px_rgba(52,211,153,0.7)] hover:tracking-[0.25em]"
                         >
                             Gabriel Eduardo Almeida
                         </a>
