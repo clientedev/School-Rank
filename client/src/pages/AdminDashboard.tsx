@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Users, BookOpen, GraduationCap, Trash2, Plus, LogOut, LayoutDashboard, Search } from "lucide-react";
+import { Users, BookOpen, GraduationCap, Trash2, Plus, LogOut, LayoutDashboard, Search, RefreshCcw, AlertTriangle } from "lucide-react";
 import { useState } from "react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -72,6 +72,19 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
             queryClient.invalidateQueries({ queryKey: ["/api/classes"] });
             queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
             toast({ title: "Sucesso", description: "Turma removida" });
+        }
+    });
+
+    const resetXPMutation = useMutation({
+        mutationFn: async () => {
+            await apiRequest("POST", "/api/admin/reset-xp");
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries();
+            toast({ title: "Sucesso", description: "Todos os XP foram zerados e histórico limpo." });
+        },
+        onError: () => {
+            toast({ title: "Erro", description: "Falha ao zerar XP", variant: "destructive" });
         }
     });
 
@@ -252,6 +265,40 @@ export default function AdminDashboard({ onLogout }: { onLogout: () => void }) {
                                 </div>
                             )}
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* Global Actions Section */}
+                <Card className="border border-red-100 shadow-sm bg-red-50/30">
+                    <CardHeader>
+                        <div className="flex items-center gap-2 text-red-600">
+                            <AlertTriangle className="h-5 w-5" />
+                            <CardTitle className="text-red-900">Configurações Críticas</CardTitle>
+                        </div>
+                        <CardDescription>Ações globais que afetam todo o sistema. Use com cautela.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col md:flex-row items-center justify-between gap-4 p-6 bg-white/50 rounded-b-xl border-t border-red-100">
+                        <div className="space-y-1">
+                            <p className="font-bold text-slate-900">Zerar Todo o XP do Sistema</p>
+                            <p className="text-sm text-slate-500">Isso irá resetar os pontos extras de todos os alunos para zero e limpar permanentemente o histórico de logs.</p>
+                        </div>
+                        <Button
+                            variant="destructive"
+                            className="font-bold whitespace-nowrap"
+                            disabled={resetXPMutation.isPending}
+                            onClick={() => {
+                                if (confirm("ATENÇÃO: Você está prestes a apagar TODO o histórico de XP e zerar os pontos de todos os alunos. Esta ação NÃO pode ser desfeita. Deseja continuar?")) {
+                                    resetXPMutation.mutate();
+                                }
+                            }}
+                        >
+                            {resetXPMutation.isPending ? "Processando..." : (
+                                <>
+                                    <RefreshCcw className="h-4 w-4 mr-2" />
+                                    Zerar Todo o XP
+                                </>
+                            )}
+                        </Button>
                     </CardContent>
                 </Card>
             </main>

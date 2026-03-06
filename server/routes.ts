@@ -125,6 +125,15 @@ export async function registerRoutes(
     res.json(stats);
   });
 
+  app.post("/api/admin/reset-xp", async (req, res) => {
+    const sessionTeacherId = (req.session as any).teacherId;
+    if (sessionTeacherId !== -1) {
+      return res.status(403).json({ message: "Não autorizado" });
+    }
+    await storage.resetAllXP();
+    res.json({ success: true, message: "Todos os XP foram zerados e histórico limpo." });
+  });
+
   app.get("/api/classes", async (req, res) => {
     const teacherId = (req.session as any).teacherId;
     if (teacherId === undefined) return res.status(401).json({ message: "Não autorizado" });

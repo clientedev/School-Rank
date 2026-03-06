@@ -183,17 +183,20 @@ export default function Attendance() {
                                                 <div className="flex gap-2 bg-slate-100 p-1.5 rounded-xl w-full sm:w-auto">
                                                     <button
                                                         onClick={() => handleSetStatus(student.studentId, 'P')}
-                                                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all ${status === 'P' ? 'bg-green-500 text-white shadow' : 'text-slate-500 hover:bg-slate-200'}`}
+                                                        disabled={saveAtt.isPending && saveAtt.variables?.studentId === student.studentId}
+                                                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all ${status === 'P' ? 'bg-green-500 text-white shadow' : 'text-slate-500 hover:bg-slate-200'} ${(saveAtt.isPending && saveAtt.variables?.studentId === student.studentId) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                     >P - Presente</button>
 
                                                     <button
                                                         onClick={() => handleSetStatus(student.studentId, 'F')}
-                                                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all ${status === 'F' ? 'bg-red-500 text-white shadow' : 'text-slate-500 hover:bg-slate-200'}`}
+                                                        disabled={saveAtt.isPending && saveAtt.variables?.studentId === student.studentId}
+                                                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all ${status === 'F' ? 'bg-red-500 text-white shadow' : 'text-slate-500 hover:bg-slate-200'} ${(saveAtt.isPending && saveAtt.variables?.studentId === student.studentId) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                     >F - Falta</button>
 
                                                     <button
                                                         onClick={() => handleSetStatus(student.studentId, 'A')}
-                                                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all ${status === 'A' ? 'bg-amber-500 text-white shadow' : 'text-slate-500 hover:bg-slate-200'}`}
+                                                        disabled={saveAtt.isPending && saveAtt.variables?.studentId === student.studentId}
+                                                        className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-sm font-bold transition-all ${status === 'A' ? 'bg-amber-500 text-white shadow' : 'text-slate-500 hover:bg-slate-200'} ${(saveAtt.isPending && saveAtt.variables?.studentId === student.studentId) ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                     >A - Atraso</button>
                                                 </div>
                                             </div>

@@ -28,8 +28,9 @@ export interface IStorage {
   getStudentByName(name: string, classId: number): Promise<Student | undefined>;
   createStudent(student: InsertStudent): Promise<Student>;
   getStudents(classId: number): Promise<Student[]>;
-  updateStudentExtraPoints(id: number, points: number, reason: string): Promise<Student>;
+  updateStudentExtraPoints(id: number, delta: number, reason: string): Promise<Student>;
   getStudentLogs(studentId: number): Promise<any[]>;
+  resetAllXP(): Promise<void>;
 
   // Activities
   getActivityByName(name: string, classId: number): Promise<Activity | undefined>;
@@ -143,17 +144,20 @@ export class MemStorage implements IStorage {
   async getStudents(classId: number): Promise<Student[]> {
     return Array.from(this.students.values()).filter(s => s.classId === classId);
   }
-  async updateStudentExtraPoints(id: number, points: number, reason: string): Promise<Student> {
+  async updateStudentExtraPoints(id: number, delta: number, reason: string): Promise<Student> {
     const s = this.students.get(id);
     if (!s) throw new Error("Student not found");
-    const oldPoints = s.extraPoints || 0;
-    const updated = { ...s, extraPoints: points };
+    const updated = { ...s, extraPoints: (s.extraPoints || 0) + delta };
     this.students.set(id, updated);
-    this.studentLogs.push({ id: this.studentLogs.length + 1, studentId: id, points: points - oldPoints, reason, createdAt: new Date().toISOString() });
+    this.studentLogs.push({ id: this.studentLogs.length + 1, studentId: id, points: delta, reason, createdAt: new Date().toISOString() });
     return updated;
   }
   async getStudentLogs(studentId: number): Promise<any[]> {
     return this.studentLogs.filter(l => l.studentId === studentId);
+  }
+  async resetAllXP(): Promise<void> {
+    Array.from(this.students.values()).forEach(s => s.extraPoints = 0);
+    this.studentLogs = [];
   }
 
   async createActivity(a: InsertActivity): Promise<Activity> {
@@ -229,6 +233,11 @@ export class MemStorage implements IStorage {
   async upsertAttendance(data: { studentId: number; classId: number; date: string; status: string }): Promise<Attendance> {
     let existing = Array.from(this.attendance.values()).find(a => a.studentId === data.studentId && a.date === data.date);
 
+    // If already exists and status is the same, just return
+    if (existing && existing.status === data.status) {
+      return existing;
+    }
+
     // Calcula pontos do novo status
     let newPoints = 0;
     if (data.status === "F") newPoints = -5;
@@ -238,13 +247,13 @@ export class MemStorage implements IStorage {
     let pointsApplied = existing ? existing.pointsApplied : 0;
 
     if (existing && existing.status !== data.status && pointsApplied !== 0) {
-      await this.updateStudentExtraPoints(data.studentId, (this.students.get(data.studentId)?.extraPoints || 0) - pointsApplied, `Estorno correção frequência (${existing.status})`);
+      await this.updateStudentExtraPoints(data.studentId, -pointsApplied, `Estorno correção frequência (${existing.status})`);
       pointsApplied = 0;
     }
 
     // Aplica novo desconto se necessário e diferente do anterior
     if ((!existing || existing.status !== data.status) && newPoints !== 0) {
-      await this.updateStudentExtraPoints(data.studentId, (this.students.get(data.studentId)?.extraPoints || 0) + newPoints, `Desconto por ${data.status === 'F' ? 'falta' : 'atraso'}`);
+      await this.updateStudentExtraPoints(data.studentId, newPoints, `Desconto por ${data.status === 'F' ? 'falta' : 'atraso'}`);
       pointsApplied = newPoints;
     } else if (newPoints === 0) {
       pointsApplied = 0;
@@ -388,18 +397,15 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(students).where(eq(students.classId, classId));
   }
 
-  async updateStudentExtraPoints(id: number, points: number, reason: string): Promise<Student> {
-    const [student] = await db.select().from(students).where(eq(students.id, id));
-    const oldPoints = student?.extraPoints || 0;
-
+  async updateStudentExtraPoints(id: number, delta: number, reason: string): Promise<Student> {
     const [updated] = await db.update(students)
-      .set({ extraPoints: points })
+      .set({ extraPoints: sql`${students.extraPoints} + ${delta}` })
       .where(eq(students.id, id))
       .returning();
 
     await db.insert(studentLogs).values({
       studentId: id,
-      points: points - oldPoints,
+      points: delta,
       reason: reason
     });
     return updated;
@@ -407,6 +413,12 @@ export class DatabaseStorage implements IStorage {
 
   async getStudentLogs(studentId: number): Promise<any[]> {
     return await db.select().from(studentLogs).where(eq(studentLogs.studentId, studentId));
+  }
+  async resetAllXP(): Promise<void> {
+    await db.transaction(async (tx: any) => {
+      await tx.update(students).set({ extraPoints: 0 });
+      await tx.delete(studentLogs);
+    });
   }
 
   async getActivityByName(name: string, classId: number): Promise<Activity | undefined> {
@@ -487,46 +499,67 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertAttendance(data: { studentId: number; classId: number; date: string; status: string }): Promise<Attendance> {
-    const [existing] = await db.select().from(attendance)
-      .where(and(eq(attendance.studentId, data.studentId), eq(attendance.date, data.date)));
+    return await db.transaction(async (tx: any) => {
+      const [existing] = await tx.select().from(attendance)
+        .where(and(eq(attendance.studentId, data.studentId), eq(attendance.date, data.date)))
+        .for("update"); // Lock the row for update to prevent concurrent race conditions
 
-    // Calcula pontos do novo status
-    let newPoints = 0;
-    if (data.status === "F") newPoints = -5;
-    if (data.status === "A") newPoints = -2;
-
-    let pointsApplied = existing ? existing.pointsApplied : 0;
-
-    // Se já existia, reverte o desconto anterior
-    if (existing && existing.status !== data.status && pointsApplied !== 0) {
-      const student = await this.getStudentByName((await db.select({ name: students.name }).from(students).where(eq(students.id, data.studentId)))[0]?.name || "", data.classId);
-      if (student) {
-        await this.updateStudentExtraPoints(data.studentId, (student.extraPoints || 0) - pointsApplied, `Estorno correção frequência (${existing.status})`);
+      // If already exists and status is the same, just return
+      if (existing && existing.status === data.status) {
+        return existing;
       }
-      pointsApplied = 0;
-    }
 
-    // Aplica novo desconto se necessário
-    if ((!existing || existing.status !== data.status) && newPoints !== 0) {
-      const student = await this.getStudentByName((await db.select({ name: students.name }).from(students).where(eq(students.id, data.studentId)))[0]?.name || "", data.classId);
-      if (student) {
-        await this.updateStudentExtraPoints(data.studentId, (student.extraPoints || 0) + newPoints, `Desconto por ${data.status === 'F' ? 'falta' : 'atraso'}`);
+      // Calcula pontos do novo status
+      let newPoints = 0;
+      if (data.status === "F") newPoints = -5;
+      if (data.status === "A") newPoints = -2;
+
+      let pointsApplied = existing ? existing.pointsApplied : 0;
+
+      // Se já existia, reverte o desconto anterior
+      if (existing && existing.status !== data.status && pointsApplied !== 0) {
+        // We use the tx to update points to ensure it's part of the same transaction
+        await tx.update(students)
+          .set({ extraPoints: sql`${students.extraPoints} - ${pointsApplied}` })
+          .where(eq(students.id, data.studentId));
+
+        await tx.insert(studentLogs).values({
+          studentId: data.studentId,
+          points: -pointsApplied,
+          reason: `Estorno correção frequência (${existing.status})`
+        });
+
+        pointsApplied = 0;
       }
-      pointsApplied = newPoints;
-    } else if (newPoints === 0) {
-      pointsApplied = 0;
-    }
 
-    if (existing) {
-      const [updated] = await db.update(attendance)
-        .set({ status: data.status, pointsApplied })
-        .where(eq(attendance.id, existing.id)).returning();
-      return updated;
-    } else {
-      const [newAtt] = await db.insert(attendance)
-        .values({ ...data, pointsApplied }).returning();
-      return newAtt;
-    }
+      // Aplica novo desconto se necessário e houve mudança de status
+      if ((!existing || existing.status !== data.status) && newPoints !== 0) {
+        await tx.update(students)
+          .set({ extraPoints: sql`${students.extraPoints} + ${newPoints}` })
+          .where(eq(students.id, data.studentId));
+
+        await tx.insert(studentLogs).values({
+          studentId: data.studentId,
+          points: newPoints,
+          reason: `Desconto por ${data.status === 'F' ? 'falta' : 'atraso'}`
+        });
+
+        pointsApplied = newPoints;
+      } else if (newPoints === 0) {
+        pointsApplied = 0;
+      }
+
+      if (existing) {
+        const [updated] = await tx.update(attendance)
+          .set({ status: data.status, pointsApplied })
+          .where(eq(attendance.id, existing.id)).returning();
+        return updated;
+      } else {
+        const [newAtt] = await tx.insert(attendance)
+          .values({ ...data, pointsApplied }).returning();
+        return newAtt;
+      }
+    });
   }
 
   async getAttendanceReport(classId: number): Promise<Attendance[]> {
