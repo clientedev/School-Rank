@@ -1,3 +1,4 @@
+// Redeploy trigger: 2026-03-06
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
