@@ -52,6 +52,13 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
     return "bg-card hover:bg-muted/30 border-l-transparent";
   };
 
+  const getStickyCellClass = (position: number) => {
+    if (position === 1) return "bg-yellow-50 group-hover:bg-yellow-100 transition-colors";
+    if (position === 2) return "bg-slate-50 group-hover:bg-slate-100 transition-colors";
+    if (position === 3) return "bg-amber-50 group-hover:bg-amber-100 transition-colors";
+    return "bg-background group-hover:bg-muted transition-colors";
+  };
+
   return (
     <div className="glass-card rounded-3xl overflow-hidden flex flex-col">
       <div className="p-6 border-b border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-muted/10">
@@ -105,12 +112,12 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                   key={student.studentId}
                   className={`group transition-colors border-l-4 ${activities.length > 0 ? getRowClass(student.position) : "bg-card hover:bg-muted/30 border-l-transparent"}`}
                 >
-                  <td className="px-6 py-4 sticky left-0 z-10 bg-inherit">
+                  <td className={`px-6 py-4 sticky left-0 z-10 ${getStickyCellClass(student.position)}`}>
                     <div className="flex justify-center items-center h-full">
                       {getRankIcon(student.position)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-semibold text-foreground sticky left-[80px] z-10 bg-inherit border-r border-border/50">
+                  <td className={`px-6 py-4 font-semibold text-foreground sticky left-[80px] z-10 border-r border-border/50 ${getStickyCellClass(student.position)}`}>
                     <Link
                       href={`/student/${student.studentId}?classId=${localStorage.getItem("classId")}`}
                       className="flex items-center gap-3 cursor-pointer group/link hover:no-underline"
