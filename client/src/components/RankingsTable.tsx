@@ -76,8 +76,8 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-muted/30 border-b border-border">
-              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-20 text-center">Pos</th>
-              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Aluno</th>
+              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider w-20 text-center sticky left-0 z-20 bg-background">Pos</th>
+              <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider sticky left-[80px] z-20 bg-background min-w-[200px] border-r border-border/50">Aluno</th>
               <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">Média</th>
               <th className="px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">Total</th>
 
@@ -105,12 +105,12 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
                   key={student.studentId}
                   className={`group transition-colors border-l-4 ${activities.length > 0 ? getRowClass(student.position) : "bg-card hover:bg-muted/30 border-l-transparent"}`}
                 >
-                  <td className="px-6 py-4">
+                  <td className="px-6 py-4 sticky left-0 z-10 bg-inherit">
                     <div className="flex justify-center items-center h-full">
                       {getRankIcon(student.position)}
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-semibold text-foreground">
+                  <td className="px-6 py-4 font-semibold text-foreground sticky left-[80px] z-10 bg-inherit border-r border-border/50">
                     <Link
                       href={`/student/${student.studentId}?classId=${localStorage.getItem("classId")}`}
                       className="flex items-center gap-3 cursor-pointer group/link hover:no-underline"
