@@ -51,7 +51,7 @@ export async function registerRoutes(
     const { email, password, rememberMe } = req.body;
 
     // Admin login check
-    if (email === "admin" && password === "admin123") {
+    if ((email === "admin" || email === "admin@escola.com") && password === "admin123") {
       (req.session as any).teacherId = -1; // Special ID for admin
       if (rememberMe) {
         req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 dias
