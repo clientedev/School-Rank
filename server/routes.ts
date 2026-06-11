@@ -15,13 +15,19 @@ export async function registerRoutes(
 ): Promise<Server> {
 
   app.get("/api/healthcheck", async (_req, res) => {
+    const envInfo = {
+      hasRailwayUrl: !!process.env.RAILWAY_DATABASE_URL,
+      hasDatabaseUrl: !!process.env.DATABASE_URL,
+      nodeEnv: process.env.NODE_ENV,
+      storageType: pool ? "DatabaseStorage" : "MemStorage",
+    };
     try {
-      if (!pool) return res.json({ db: false, error: "pool is null — DATABASE_URL not set at startup" });
+      if (!pool) return res.json({ db: false, ...envInfo, error: "pool is null — no DATABASE_URL set" });
       await pool.query("SELECT 1");
       const result = await pool.query("SELECT COUNT(*) FROM teachers");
-      res.json({ db: true, teachers: Number(result.rows[0].count) });
+      res.json({ db: true, ...envInfo, teachers: Number(result.rows[0].count) });
     } catch (err: any) {
-      res.json({ db: false, error: err.message });
+      res.json({ db: false, ...envInfo, error: err.message });
     }
   });
 
@@ -87,9 +93,13 @@ export async function registerRoutes(
       }
 
       res.json({ success: true, teacherId: t.id });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Login error:", err);
-      res.status(500).json({ message: "Erro interno ao fazer login. Tente novamente." });
+      res.status(500).json({
+        message: "Erro interno ao fazer login.",
+        detail: err?.message || String(err),
+        storageType: pool ? "DatabaseStorage" : "MemStorage",
+      });
     }
   });
 
