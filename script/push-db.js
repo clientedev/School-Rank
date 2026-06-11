@@ -4,57 +4,73 @@ const { Client } = pg;
 
 const schemaSQL = `
 CREATE TABLE IF NOT EXISTS "teachers" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
-	"email" text NOT NULL,
-	"password" text NOT NULL,
-	"role" text DEFAULT 'teacher' NOT NULL,
-	CONSTRAINT "teachers_email_unique" UNIQUE("email")
+        "id" serial PRIMARY KEY NOT NULL,
+        "name" text NOT NULL,
+        "email" text NOT NULL,
+        "password" text NOT NULL,
+        "role" text DEFAULT 'teacher' NOT NULL,
+        CONSTRAINT "teachers_email_unique" UNIQUE("email")
 );
 
 CREATE TABLE IF NOT EXISTS "classes" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
-	"password" text NOT NULL,
-	"teacher_id" integer
+        "id" serial PRIMARY KEY NOT NULL,
+        "name" text NOT NULL,
+        "password" text NOT NULL,
+        "teacher_id" integer
 );
 
 CREATE TABLE IF NOT EXISTS "students" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
-	"extra_points" real DEFAULT 0 NOT NULL,
-	"class_id" integer NOT NULL
+        "id" serial PRIMARY KEY NOT NULL,
+        "name" text NOT NULL,
+        "extra_points" real DEFAULT 0 NOT NULL,
+        "class_id" integer NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "activities" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"name" text NOT NULL,
-	"class_id" integer NOT NULL
+        "id" serial PRIMARY KEY NOT NULL,
+        "name" text NOT NULL,
+        "class_id" integer NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS "grades" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"student_id" integer NOT NULL,
-	"activity_id" integer NOT NULL,
-	"value" real NOT NULL,
-	"reason" text,
-	CONSTRAINT "grades_student_id_activity_id_unique" UNIQUE("student_id","activity_id")
+        "id" serial PRIMARY KEY NOT NULL,
+        "student_id" integer NOT NULL,
+        "activity_id" integer NOT NULL,
+        "value" real NOT NULL,
+        "reason" text,
+        CONSTRAINT "grades_student_id_activity_id_unique" UNIQUE("student_id","activity_id")
 );
 
 CREATE TABLE IF NOT EXISTS "settings" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"key" text NOT NULL,
-	"value" text NOT NULL,
-	"class_id" integer,
-	CONSTRAINT "settings_key_unique" UNIQUE("key")
+        "id" serial PRIMARY KEY NOT NULL,
+        "key" text NOT NULL,
+        "value" text NOT NULL,
+        "class_id" integer
 );
 
 CREATE TABLE IF NOT EXISTS "student_logs" (
-	"id" serial PRIMARY KEY NOT NULL,
-	"student_id" integer NOT NULL,
-	"points" real NOT NULL,
-	"reason" text NOT NULL,
-	"created_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL
+        "id" serial PRIMARY KEY NOT NULL,
+        "student_id" integer NOT NULL,
+        "points" real NOT NULL,
+        "reason" text NOT NULL,
+        "created_at" text DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS "attendance" (
+        "id" serial PRIMARY KEY NOT NULL,
+        "student_id" integer NOT NULL,
+        "class_id" integer NOT NULL,
+        "date" text NOT NULL,
+        "status" text NOT NULL,
+        "points_applied" real DEFAULT 0 NOT NULL,
+        CONSTRAINT "attendance_student_id_date_unique" UNIQUE("student_id","date")
+);
+
+CREATE TABLE IF NOT EXISTS "class_schedule" (
+        "id" serial PRIMARY KEY NOT NULL,
+        "class_id" integer NOT NULL,
+        "weekdays" text DEFAULT '' NOT NULL,
+        CONSTRAINT "class_schedule_class_id_unique" UNIQUE("class_id")
 );
 
 DO $$ BEGIN
@@ -98,6 +114,24 @@ DO $$ BEGIN
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
+
+DO $$ BEGIN
+ ALTER TABLE "attendance" ADD CONSTRAINT "attendance_student_id_students_id_fk" FOREIGN KEY ("student_id") REFERENCES "public"."students"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+ ALTER TABLE "attendance" ADD CONSTRAINT "attendance_class_id_classes_id_fk" FOREIGN KEY ("class_id") REFERENCES "public"."classes"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+ ALTER TABLE "class_schedule" ADD CONSTRAINT "class_schedule_class_id_classes_id_fk" FOREIGN KEY ("class_id") REFERENCES "public"."classes"("id") ON DELETE no action ON UPDATE no action;
+EXCEPTION
+ WHEN duplicate_object THEN null;
+END $$;
 `;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -109,7 +143,7 @@ async function pushDb() {
 	}
 
 	const maxRetries = 15;
-	const retryDelay = 3000; // 3 seconds
+	const retryDelay = 3000;
 	let client;
 	let connected = false;
 
@@ -118,7 +152,7 @@ async function pushDb() {
 		client = new Client({
 			connectionString: process.env.DATABASE_URL,
 			ssl: { rejectUnauthorized: false },
-			connectionTimeoutMillis: 5000 // 5 seconds timeout per connection attempt
+			connectionTimeoutMillis: 5000
 		});
 
 		try {
