@@ -15,11 +15,22 @@ export async function registerRoutes(
 ): Promise<Server> {
 
   app.get("/api/healthcheck", async (_req, res) => {
+    const rawUrl = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL || "";
+    let maskedUrl = "(not set)";
+    try {
+      if (rawUrl) {
+        const u = new URL(rawUrl);
+        u.password = u.password ? "****" : "";
+        maskedUrl = u.toString();
+      }
+    } catch { maskedUrl = rawUrl.slice(0, 30) + "...(parse error)"; }
+
     const envInfo = {
       hasRailwayUrl: !!process.env.RAILWAY_DATABASE_URL,
       hasDatabaseUrl: !!process.env.DATABASE_URL,
       nodeEnv: process.env.NODE_ENV,
       storageType: pool ? "DatabaseStorage" : "MemStorage",
+      dbUrl: maskedUrl,
     };
     try {
       if (!pool) return res.json({ db: false, ...envInfo, error: "pool is null — no DATABASE_URL set" });
