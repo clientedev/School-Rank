@@ -52,29 +52,33 @@ export async function registerRoutes(
   });
 
   app.post("/api/login", async (req, res) => {
+    try {
+      const { email, password, rememberMe } = req.body;
 
-    const { email, password, rememberMe } = req.body;
+      // Admin login check
+      if ((email === "admin" || email === "admin@escola.com") && password === "admin123") {
+        (req.session as any).teacherId = -1; // Special ID for admin
+        if (rememberMe) {
+          req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 dias
+        }
+        return res.json({ success: true, teacherId: -1, isAdmin: true });
+      }
 
-    // Admin login check
-    if ((email === "admin" || email === "admin@escola.com") && password === "admin123") {
-      (req.session as any).teacherId = -1; // Special ID for admin
+      const t = await storage.getTeacherByEmail(email);
+      if (!t || t.password !== password) {
+        return res.status(401).json({ message: "Email ou senha inválida" });
+      }
+
+      (req.session as any).teacherId = t.id;
       if (rememberMe) {
         req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 dias
       }
-      return res.json({ success: true, teacherId: -1, isAdmin: true });
-    }
 
-    const t = await storage.getTeacherByEmail(email);
-    if (!t || t.password !== password) {
-      return res.status(401).json({ message: "Email ou senha inválida" });
+      res.json({ success: true, teacherId: t.id });
+    } catch (err) {
+      console.error("Login error:", err);
+      res.status(500).json({ message: "Erro interno ao fazer login. Tente novamente." });
     }
-
-    (req.session as any).teacherId = t.id;
-    if (rememberMe) {
-      req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 dias
-    }
-
-    res.json({ success: true, teacherId: t.id });
   });
 
   app.post("/api/register", async (req, res) => {
