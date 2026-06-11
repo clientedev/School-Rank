@@ -10,9 +10,19 @@ export let db: any = null;
 const connectionString = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
 
 if (connectionString) {
+  // Railway internal URLs (*.railway.internal) don't use SSL.
+  // External URLs often require SSL. Let pg decide from the connection string,
+  // but allow override via DATABASE_SSL env var.
+  const needsSsl =
+    process.env.DATABASE_SSL === "true" ||
+    (!connectionString.includes("railway.internal") &&
+      !connectionString.includes("localhost") &&
+      !connectionString.includes("127.0.0.1") &&
+      !connectionString.includes("sslmode=disable"));
+
   pool = new Pool({
     connectionString,
-    ssl: { rejectUnauthorized: false }
+    ...(needsSsl ? { ssl: { rejectUnauthorized: false } } : {}),
   });
   db = drizzle(pool, { schema });
 } else {
