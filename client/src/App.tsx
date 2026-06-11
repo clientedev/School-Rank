@@ -142,6 +142,16 @@ function Router() {
             localStorage.removeItem("teacherId");
             localStorage.removeItem("classId");
             setLocation("/");
+            return;
+          }
+          // Restore classId into server session after page reload
+          const savedClassId = localStorage.getItem("classId");
+          if (savedClassId) {
+            try {
+              await apiRequest("POST", `/api/classes/${savedClassId}/select`, {});
+            } catch (e) {
+              console.error("Failed to restore class session", e);
+            }
           }
         } catch (e) {
           console.error("Session check failed", e);
@@ -149,7 +159,7 @@ function Router() {
       }
     };
     checkSession();
-  }, [teacherId, location]);
+  }, [teacherId]);
 
 
   const handleLogout = async () => {
@@ -165,9 +175,14 @@ function Router() {
     }
   };
 
-  const handleSelectClass = (id: number) => {
+  const handleSelectClass = async (id: number) => {
     setClassId(id);
     localStorage.setItem("classId", id.toString());
+    try {
+      await apiRequest("POST", `/api/classes/${id}/select`, {});
+    } catch (e) {
+      console.error("Failed to sync class to session", e);
+    }
   };
 
   const handleBackToClasses = () => {

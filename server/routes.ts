@@ -314,7 +314,8 @@ export async function registerRoutes(
 
   app.post(api.grades.batchUpload.path, requireAuth, async (req, res) => {
     try {
-      const classId = (req.session as any).classId;
+      const classId = (req.session as any).classId || Number(req.body.classId);
+      if (!classId) return res.status(400).json({ message: "Turma não especificada" });
       const { data } = api.grades.batchUpload.input.parse(req.body);
 
       for (const row of data) {

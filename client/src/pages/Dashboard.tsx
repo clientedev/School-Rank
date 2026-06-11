@@ -28,6 +28,7 @@ export default function Dashboard() {
       const res = await fetch(api.settings.updateClassName.path, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ className: newName, classId })
       });
       if (res.ok) {
