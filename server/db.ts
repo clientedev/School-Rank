@@ -7,9 +7,11 @@ const { Pool } = pg;
 export let pool: any = null;
 export let db: any = null;
 
-if (process.env.DATABASE_URL) {
+const connectionString = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
+
+if (connectionString) {
   pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString,
     ssl: { rejectUnauthorized: false }
   });
   db = drizzle(pool, { schema });
