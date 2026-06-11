@@ -5,6 +5,7 @@ import { api } from "@shared/routes";
 import { z } from "zod";
 import session from "express-session";
 import MemoryStoreFactory from "memorystore";
+import { pool } from "./db";
 
 const MemoryStore = MemoryStoreFactory(session);
 
@@ -12,6 +13,17 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  app.get("/api/healthcheck", async (_req, res) => {
+    try {
+      if (!pool) return res.json({ db: false, error: "pool is null — DATABASE_URL not set at startup" });
+      await pool.query("SELECT 1");
+      const result = await pool.query("SELECT COUNT(*) FROM teachers");
+      res.json({ db: true, teachers: Number(result.rows[0].count) });
+    } catch (err: any) {
+      res.json({ db: false, error: err.message });
+    }
+  });
 
   app.use(session({
     cookie: {
