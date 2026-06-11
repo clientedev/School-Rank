@@ -25,16 +25,30 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const { toast } = useToast();
 
   const handleLogin = async () => {
     setIsLoading(true);
+    setErrorDetail(null);
     try {
-      const res = await apiRequest("POST", "/api/login", { email, password, rememberMe });
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password, rememberMe }),
+      });
       const data = await res.json();
+      if (!res.ok) {
+        const msg = data.detail || data.message || `Erro ${res.status}`;
+        setErrorDetail(msg);
+        toast({ title: "Erro ao entrar", description: data.message || "Verifique usuário e senha", variant: "destructive" });
+        return;
+      }
       onLogin(data.teacherId);
-    } catch (e) {
-      toast({ title: "Erro", description: "Usuário ou senha inválida", variant: "destructive" });
+    } catch (e: any) {
+      setErrorDetail(e?.message || String(e));
+      toast({ title: "Erro de conexão", description: "Não foi possível contactar o servidor", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -109,6 +123,11 @@ function Login({ onLogin }: { onLogin: (teacherId: number) => void }) {
           >
             {isLoading ? "Acessando..." : "Entrar no Painel"}
           </Button>
+          {errorDetail && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-xs text-red-700 font-mono break-all">
+              <strong>Erro do servidor:</strong> {errorDetail}
+            </div>
+          )}
           <div className="text-center pt-2">
             <p className="text-xs text-slate-400 font-bold uppercase tracking-[0.2em]">SISTEMA EDUCACIONAL</p>
           </div>
