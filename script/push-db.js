@@ -137,55 +137,56 @@ END $$;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function pushDb() {
-	if (!process.env.DATABASE_URL) {
-		console.log("No DATABASE_URL set, skipping db push.");
-		return;
-	}
+        const connectionString = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
+        if (!connectionString) {
+                console.log("No DATABASE_URL set, skipping db push.");
+                return;
+        }
 
-	const maxRetries = 15;
-	const retryDelay = 3000;
-	let client;
-	let connected = false;
+        const maxRetries = 15;
+        const retryDelay = 3000;
+        let client;
+        let connected = false;
 
-	for (let attempt = 1; attempt <= maxRetries; attempt++) {
-		console.log(`🔌 Tentando conectar ao banco de dados (Tentativa ${attempt}/${maxRetries})...`);
-		client = new Client({
-			connectionString: process.env.DATABASE_URL,
-			ssl: { rejectUnauthorized: false },
-			connectionTimeoutMillis: 5000
-		});
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                console.log(`🔌 Tentando conectar ao banco de dados (Tentativa ${attempt}/${maxRetries})...`);
+                client = new Client({
+                        connectionString,
+                        ssl: { rejectUnauthorized: false },
+                        connectionTimeoutMillis: 5000
+                });
 
-		try {
-			await client.connect();
-			connected = true;
-			console.log("✅ Conectado ao banco de dados com sucesso!");
-			break;
-		} catch (error) {
-			console.warn(`⚠️ Falha na tentativa ${attempt}/${maxRetries}:`, error.message || error);
-			try {
-				await client.end();
-			} catch (_) {}
-			if (attempt < maxRetries) {
-				console.log(`Aguardando ${retryDelay / 1000} segundos antes de tentar novamente...`);
-				await sleep(retryDelay);
-			} else {
-				console.error("❌ Limite de tentativas atingido. Não foi possível conectar ao banco de dados.");
-				process.exit(1);
-			}
-		}
-	}
+                try {
+                        await client.connect();
+                        connected = true;
+                        console.log("✅ Conectado ao banco de dados com sucesso!");
+                        break;
+                } catch (error) {
+                        console.warn(`⚠️ Falha na tentativa ${attempt}/${maxRetries}:`, error.message || error);
+                        try {
+                                await client.end();
+                        } catch (_) {}
+                        if (attempt < maxRetries) {
+                                console.log(`Aguardando ${retryDelay / 1000} segundos antes de tentar novamente...`);
+                                await sleep(retryDelay);
+                        } else {
+                                console.error("❌ Limite de tentativas atingido. Não foi possível conectar ao banco de dados.");
+                                process.exit(1);
+                        }
+                }
+        }
 
-	try {
-		console.log("🚀 FORCING DATABASE TABLE CREATION...");
-		await client.query(schemaSQL);
-		console.log("✅ TODAS AS TABELAS FORAM CRIADAS E ATUALIZADAS COM SUCESSO!");
-	} catch (error) {
-		console.error("❌ Erro fatal ao tentar criar as tabelas:", error);
-		process.exit(1);
-	} finally {
-		await client.end();
-		process.exit(0);
-	}
+        try {
+                console.log("🚀 FORCING DATABASE TABLE CREATION...");
+                await client.query(schemaSQL);
+                console.log("✅ TODAS AS TABELAS FORAM CRIADAS E ATUALIZADAS COM SUCESSO!");
+        } catch (error) {
+                console.error("❌ Erro fatal ao tentar criar as tabelas:", error);
+                process.exit(1);
+        } finally {
+                await client.end();
+                process.exit(0);
+        }
 }
 
 pushDb();

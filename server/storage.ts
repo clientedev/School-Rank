@@ -590,5 +590,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = process.env.DATABASE_URL ? new DatabaseStorage() : new MemStorage();
+export const storage = (process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL) ? new DatabaseStorage() : new MemStorage();
 
