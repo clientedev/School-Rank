@@ -1,7 +1,5 @@
 import { Download, FileText, FileSpreadsheet } from "lucide-react";
 import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 
 interface ExportData {
   rankings: any[];
@@ -11,7 +9,6 @@ interface ExportData {
 export function ExportButtons({ rankings, activities }: ExportData) {
   
   const handleExportExcel = () => {
-    // Flatten data for excel
     const exportData = rankings.map(r => {
       const row: any = {
         'Posição': r.position,
@@ -35,52 +32,56 @@ export function ExportButtons({ rankings, activities }: ExportData) {
   };
 
   const handleExportPDF = () => {
-    const doc = new jsPDF();
-    
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("Relatório de Ranking da Turma", 14, 22);
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30);
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
 
-    const headers = [
-      'Pos', 'Aluno', 'Média', 'Total', 
-      ...activities.map(a => a.name)
-    ];
+    const headers = ['Pos', 'Aluno', 'Média', 'Total', ...activities.map(a => a.name)];
 
-    const body = rankings.map(r => {
-      const row = [
+    const rows = rankings.map(r => {
+      const cells = [
         `${r.position}º`,
         r.studentName,
         r.average.toFixed(2),
         r.totalPoints.toFixed(1),
       ];
-      
       activities.forEach(act => {
         const grade = r.grades.find((g: any) => g.activityId === act.id);
-        row.push(grade ? String(grade.value) : '-');
+        cells.push(grade ? String(grade.value) : '-');
       });
-      
-      return row;
+      return cells;
     });
 
-    autoTable(doc, {
-      startY: 35,
-      head: [headers],
-      body: body,
-      theme: 'grid',
-      headStyles: { fillColor: [79, 70, 229], textColor: 255 }, // matches primary indigo roughly
-      alternateRowStyles: { fillColor: [248, 250, 252] },
-      columnStyles: {
-        0: { halign: 'center', fontStyle: 'bold' },
-        2: { halign: 'center' },
-        3: { halign: 'center' },
-      }
-    });
+    const tableRows = rows.map(row =>
+      `<tr>${row.map((cell, i) => `<td style="text-align:${i === 1 ? 'left' : 'center'}">${cell}</td>`).join('')}</tr>`
+    ).join('');
 
-    doc.save("ranking_turma.pdf");
+    printWindow.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Ranking da Turma</title>
+  <style>
+    body { font-family: Helvetica, Arial, sans-serif; padding: 20px; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    p { font-size: 11px; color: #555; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { background: #4f46e5; color: #fff; padding: 6px 8px; text-align: center; }
+    td { padding: 5px 8px; border: 1px solid #e2e8f0; }
+    tr:nth-child(even) td { background: #f8fafc; }
+  </style>
+</head>
+<body>
+  <h1>Relatório de Ranking da Turma</h1>
+  <p>Gerado em: ${new Date().toLocaleDateString('pt-BR')}</p>
+  <table>
+    <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>
+</body>
+</html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); }, 250);
   };
 
   return (

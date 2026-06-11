@@ -1,0 +1,77 @@
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:29.427 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:29.427 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:32.044 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:32.044 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:33.824 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:33.824 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:36.281 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:36.281 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:40.709 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:40.709 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:44.793 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:44.793 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:47.185 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:47.185 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:48.979 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:48.979 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:51.158 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:51.158 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:53.056 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:53.056 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Mounting volume on: /var/lib/containers/railwayapp/bind-mounts/66a0290b-4fe1-4de5-aed3-c7d820a5589e/vol_2qq6yie935jbj6fn
+Certificate will not expire
+pgbackrest: volume 4614 MiB; sized wal-drop=461 MiB queue-max=2307 MiB
+pgbackrest: restore-gate WAL_RECOVER_FROM_BUCKET= POSTGRES_RECOVERY_TARGET_TIME= PG_VERSION=present PG_CONTROL=present RESTORED_MARKER=missing PGDATA=/var/lib/postgresql/data/pgdata
+PostgreSQL Database directory appears to contain a database; Skipping initialization
+2026-06-11 17:41:54.624 UTC [15] FATAL:  database files are incompatible with server
+2026-06-11 17:41:54.624 UTC [15] DETAIL:  The data directory was initialized by PostgreSQL version 17, which is not compatible with this version 18.4 (Debian 18.4-1.pgdg13+1).
