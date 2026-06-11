@@ -1,0 +1,114 @@
+/api/login:1  Failed to load resource: the server responded with a status of 500 ()
+/api/login:1  Failed to load resource: the server responded with a status of 500 ()
+index-D0QPR3J3.js:8  POST https://ranking.senai103.cloud/api/login 500 (Internal Server Error)
+_a @ index-D0QPR3J3.js:8
+d @ index-D0QPR3J3.js:325
+Jg @ index-D0QPR3J3.js:5
+V @ index-D0QPR3J3.js:5
+Q @ index-D0QPR3J3.js:5
+FA @ index-D0QPR3J3.js:5
+RA @ index-D0QPR3J3.js:5
+(anonymous) @ index-D0QPR3J3.js:5
+Sy @ index-D0QPR3J3.js:8
+_h @ index-D0QPR3J3.js:5
+Sx @ index-D0QPR3J3.js:5
+ix @ index-D0QPR3J3.js:5
+O$ @ index-D0QPR3J3.js:5
+index-D0QPR3J3.js:8  POST https://ranking.senai103.cloud/api/login 500 (Internal Server Error)
+_a @ index-D0QPR3J3.js:8
+d @ index-D0QPR3J3.js:325
+Jg @ index-D0QPR3J3.js:5
+V @ index-D0QPR3J3.js:5
+Q @ index-D0QPR3J3.js:5
+FA @ index-D0QPR3J3.js:5
+RA @ index-D0QPR3J3.js:5
+(anonymous) @ index-D0QPR3J3.js:5
+Sy @ index-D0QPR3J3.js:8
+_h @ index-D0QPR3J3.js:5
+Sx @ index-D0QPR3J3.js:5
+ix @ index-D0QPR3J3.js:5
+O$ @ index-D0QPR3J3.js:5
+index-D0QPR3J3.js:8  POST https://ranking.senai103.cloud/api/login 500 (Internal Server Error)
+_a @ index-D0QPR3J3.js:8
+d @ index-D0QPR3J3.js:325
+Jg @ index-D0QPR3J3.js:5
+V @ index-D0QPR3J3.js:5
+Q @ index-D0QPR3J3.js:5
+FA @ index-D0QPR3J3.js:5
+RA @ index-D0QPR3J3.js:5
+(anonymous) @ index-D0QPR3J3.js:5
+Sy @ index-D0QPR3J3.js:8
+_h @ index-D0QPR3J3.js:5
+Sx @ index-D0QPR3J3.js:5
+ix @ index-D0QPR3J3.js:5
+O$ @ index-D0QPR3J3.js:5
+index-D0QPR3J3.js:8  POST https://ranking.senai103.cloud/api/login 500 (Internal Server Error)
+_a @ index-D0QPR3J3.js:8
+d @ index-D0QPR3J3.js:325
+Jg @ index-D0QPR3J3.js:5
+V @ index-D0QPR3J3.js:5
+Q @ index-D0QPR3J3.js:5
+FA @ index-D0QPR3J3.js:5
+RA @ index-D0QPR3J3.js:5
+(anonymous) @ index-D0QPR3J3.js:5
+Sy @ index-D0QPR3J3.js:8
+_h @ index-D0QPR3J3.js:5
+Sx @ index-D0QPR3J3.js:5
+ix @ index-D0QPR3J3.js:5
+O$ @ index-D0QPR3J3.js:5
+index-D0QPR3J3.js:8  POST https://ranking.senai103.cloud/api/login 500 (Internal Server Error)
+_a @ index-D0QPR3J3.js:8
+d @ index-D0QPR3J3.js:325
+Jg @ index-D0QPR3J3.js:5
+V @ index-D0QPR3J3.js:5
+Q @ index-D0QPR3J3.js:5
+FA @ index-D0QPR3J3.js:5
+RA @ index-D0QPR3J3.js:5
+(anonymous) @ index-D0QPR3J3.js:5
+Sy @ index-D0QPR3J3.js:8
+_h @ index-D0QPR3J3.js:5
+Sx @ index-D0QPR3J3.js:5
+ix @ index-D0QPR3J3.js:5
+O$ @ index-D0QPR3J3.js:5
+index-D0QPR3J3.js:8  POST https://ranking.senai103.cloud/api/login 500 (Internal Server Error)
+_a @ index-D0QPR3J3.js:8
+d @ index-D0QPR3J3.js:325
+Jg @ index-D0QPR3J3.js:5
+V @ index-D0QPR3J3.js:5
+Q @ index-D0QPR3J3.js:5
+FA @ index-D0QPR3J3.js:5
+RA @ index-D0QPR3J3.js:5
+(anonymous) @ index-D0QPR3J3.js:5
+Sy @ index-D0QPR3J3.js:8
+_h @ index-D0QPR3J3.js:5
+Sx @ index-D0QPR3J3.js:5
+ix @ index-D0QPR3J3.js:5
+O$ @ index-D0QPR3J3.js:5
+index-D0QPR3J3.js:8  POST https://ranking.senai103.cloud/api/login 500 (Internal Server Error)
+_a @ index-D0QPR3J3.js:8
+d @ index-D0QPR3J3.js:325
+Jg @ index-D0QPR3J3.js:5
+V @ index-D0QPR3J3.js:5
+Q @ index-D0QPR3J3.js:5
+FA @ index-D0QPR3J3.js:5
+RA @ index-D0QPR3J3.js:5
+(anonymous) @ index-D0QPR3J3.js:5
+Sy @ index-D0QPR3J3.js:8
+_h @ index-D0QPR3J3.js:5
+Sx @ index-D0QPR3J3.js:5
+ix @ index-D0QPR3J3.js:5
+O$ @ index-D0QPR3J3.js:5
+index-D0QPR3J3.js:8  POST https://ranking.senai103.cloud/api/login 500 (Internal Server Error)
+_a @ index-D0QPR3J3.js:8
+d @ index-D0QPR3J3.js:325
+Jg @ index-D0QPR3J3.js:5
+V @ index-D0QPR3J3.js:5
+Q @ index-D0QPR3J3.js:5
+FA @ index-D0QPR3J3.js:5
+RA @ index-D0QPR3J3.js:5
+(anonymous) @ index-D0QPR3J3.js:5
+Sy @ index-D0QPR3J3.js:8
+_h @ index-D0QPR3J3.js:5
+Sx @ index-D0QPR3J3.js:5
+ix @ index-D0QPR3J3.js:5
+O$ @ index-D0QPR3J3.js:5
