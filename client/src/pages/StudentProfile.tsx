@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "wouter";
-import { Loader2, Trophy, Star, History, TrendingUp, Zap, Shield, Target, Award, Swords } from "lucide-react";
+import { Loader2, Trophy, Star, History, TrendingUp, Zap, Shield, Target, Award, Swords, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { useStudentAttendance } from "@/hooks/use-attendance";
+import senaiLogo from "@assets/image_1781613726880.png";
 
 export default function StudentProfile() {
   const { id } = useParams();
@@ -65,6 +66,141 @@ export default function StudentProfile() {
   const totalActivities = student.grades.length;
   const bestGrade = student.grades.length > 0 ? Math.max(...student.grades.map((g: any) => g.value)) : 0;
   const worstGrade = student.grades.length > 0 ? Math.min(...student.grades.map((g: any) => g.value)) : 0;
+
+  const motivationalMessages = [
+    "O sucesso é a soma de pequenos esforços repetidos dia após dia. Continue assim!",
+    "Cada nota conquistada é um passo rumo ao seu futuro. Parabéns pelo empenho!",
+    "O conhecimento é a melhor herança que você pode construir. Siga em frente!",
+    "Sua dedicação hoje é o diferencial de amanhã. Continue se superando!",
+    "Acredite no seu potencial! Grandes profissionais são formados com esforço e determinação.",
+  ];
+  const motivational = motivationalMessages[student.studentId % motivationalMessages.length];
+
+  const handleBoletim = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const gradeRows = student.grades.map((g: any, i: number) => `
+      <tr>
+        <td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;color:#555;font-weight:500;">Nota ${i + 1}</td>
+        <td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;text-align:center;">
+          <span style="display:inline-block;padding:4px 14px;border-radius:20px;font-weight:700;font-size:15px;
+            background:${g.value >= 7 ? '#e8f5e9' : g.value >= 5 ? '#fff8e1' : '#ffebee'};
+            color:${g.value >= 7 ? '#2e7d32' : g.value >= 5 ? '#f57f17' : '#c62828'};">
+            ${Number(g.value).toFixed(1)}
+          </span>
+        </td>
+      </tr>`).join('');
+
+    const avg = student.average ?? 0;
+    const avgColor = avg >= 7 ? '#2e7d32' : avg >= 5 ? '#f57f17' : '#c62828';
+    const avgBg = avg >= 7 ? '#e8f5e9' : avg >= 5 ? '#fff8e1' : '#ffebee';
+    const situation = avg >= 7 ? 'APROVADO(A)' : avg >= 5 ? 'EM RECUPERAÇÃO' : 'REPROVADO(A)';
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"/>
+  <title>Boletim — ${student.studentName}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; }
+    .page { width: 794px; min-height: 1123px; margin: 0 auto; background: #fff; padding: 48px 52px; }
+    @media print {
+      body { background: #fff; }
+      .page { width: 100%; padding: 32px 40px; box-shadow: none; }
+    }
+    .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid #cc0000; padding-bottom: 20px; margin-bottom: 28px; }
+    .header img { height: 54px; object-fit: contain; }
+    .header-text { text-align: right; }
+    .header-text h1 { font-size: 22px; font-weight: 800; color: #cc0000; letter-spacing: 1px; }
+    .header-text p { font-size: 12px; color: #777; margin-top: 2px; }
+    .semester-badge { display: inline-block; background: #cc0000; color: #fff; font-weight: 700; font-size: 13px; padding: 5px 18px; border-radius: 20px; margin-bottom: 22px; letter-spacing: 1px; }
+    .student-box { background: #fafafa; border: 1px solid #e8e8e8; border-radius: 12px; padding: 20px 24px; margin-bottom: 28px; display: flex; gap: 40px; }
+    .student-box .field label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #999; font-weight: 600; }
+    .student-box .field p { font-size: 16px; font-weight: 700; color: #222; margin-top: 3px; }
+    .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; color: #888; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 28px; }
+    thead th { background: #cc0000; color: #fff; padding: 10px 14px; font-size: 12px; text-align: left; }
+    thead th:last-child { text-align: center; }
+    .avg-row { margin-top: 4px; }
+    .avg-box { background: ${avgBg}; border: 2px solid ${avgColor}; border-radius: 12px; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .avg-box .avg-label { font-size: 14px; font-weight: 700; color: ${avgColor}; }
+    .avg-box .avg-value { font-size: 32px; font-weight: 900; color: ${avgColor}; }
+    .avg-box .situation { font-size: 12px; font-weight: 800; padding: 4px 14px; background: ${avgColor}; color: #fff; border-radius: 20px; letter-spacing: 1px; }
+    .motivation { background: linear-gradient(135deg, #fff8f8, #fff0f0); border-left: 4px solid #cc0000; border-radius: 0 10px 10px 0; padding: 16px 20px; margin-bottom: 32px; }
+    .motivation p { font-size: 13px; color: #444; font-style: italic; line-height: 1.6; }
+    .motivation strong { color: #cc0000; font-style: normal; display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .footer { border-top: 1px solid #e8e8e8; padding-top: 20px; text-align: center; color: #bbb; font-size: 10px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <img src="${senaiLogo}" alt="SENAI"/>
+      <div class="header-text">
+        <h1>BOLETIM ESCOLAR</h1>
+        <p>Sistema de Gestão de Notas e Desempenho</p>
+        <p>Gerado em: ${new Date().toLocaleDateString('pt-BR')}</p>
+      </div>
+    </div>
+
+    <div class="semester-badge">📅 1° SEMESTRE</div>
+
+    <div class="student-box">
+      <div class="field">
+        <label>Aluno(a)</label>
+        <p>${student.studentName}</p>
+      </div>
+      <div class="field">
+        <label>Posição no Ranking</label>
+        <p>${student.position}° lugar</p>
+      </div>
+      <div class="field">
+        <label>Total de Notas</label>
+        <p>${student.grades.length} avaliações</p>
+      </div>
+    </div>
+
+    <div class="section-title">Notas do Semestre</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Avaliação</th>
+          <th style="text-align:center">Nota</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${gradeRows || '<tr><td colspan="2" style="padding:14px;text-align:center;color:#aaa;">Nenhuma nota lançada</td></tr>'}
+      </tbody>
+    </table>
+
+    <div class="avg-box">
+      <div>
+        <div class="avg-label">Média Final do Semestre</div>
+        <div style="font-size:11px;color:#888;margin-top:2px;">Calculada sobre todas as avaliações</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="avg-value">${avg.toFixed(2)}</div>
+        <div class="situation">${situation}</div>
+      </div>
+    </div>
+
+    <div class="motivation">
+      <strong>💬 Mensagem de Motivação</strong>
+      <p>"${motivational}"</p>
+    </div>
+
+    <div class="footer">
+      SENAI — Serviço Nacional de Aprendizagem Industrial &nbsp;|&nbsp; Documento gerado automaticamente pelo sistema de ranking escolar
+    </div>
+  </div>
+</body>
+</html>`);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); }, 300);
+  };
 
   return (
     <div
@@ -150,6 +286,21 @@ export default function StudentProfile() {
       `}</style>
 
       <div className="max-w-5xl mx-auto space-y-6">
+
+        {/* Action bar */}
+        <div className="flex justify-end">
+          <button
+            onClick={handleBoletim}
+            data-testid="button-gerar-boletim"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all"
+            style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.2)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
+          >
+            <FileText className="w-4 h-4" />
+            Gerar Boletim
+          </button>
+        </div>
 
         {/* Hero Card */}
         <div
