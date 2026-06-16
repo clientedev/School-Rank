@@ -73,6 +73,8 @@ CREATE TABLE IF NOT EXISTS "class_schedule" (
         CONSTRAINT "class_schedule_class_id_unique" UNIQUE("class_id")
 );
 
+ALTER TABLE "students" ADD COLUMN IF NOT EXISTS "boletim_released" boolean DEFAULT false NOT NULL;
+
 DO $$ BEGIN
  ALTER TABLE "activities" ADD CONSTRAINT "activities_class_id_classes_id_fk" FOREIGN KEY ("class_id") REFERENCES "public"."classes"("id") ON DELETE no action ON UPDATE no action;
 EXCEPTION
@@ -137,7 +139,7 @@ END $$;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function pushDb() {
-        const connectionString = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
+        const connectionString = process.env.DATABASE_URL;
         if (!connectionString) {
                 console.log("No DATABASE_URL set, skipping db push.");
                 return;
