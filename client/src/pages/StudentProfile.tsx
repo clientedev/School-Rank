@@ -153,8 +153,8 @@ export default function StudentProfile() {
         <p>${student.studentName}</p>
       </div>
       <div class="field">
-        <label>Posição no Ranking</label>
-        <p>${student.position}° lugar</p>
+        <label>Professor(a)</label>
+        <p>Gabriel Eduardo Almeida</p>
       </div>
       <div class="field">
         <label>Total de Notas</label>
