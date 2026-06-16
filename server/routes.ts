@@ -230,6 +230,7 @@ export async function registerRoutes(
           studentId: s.id,
           studentName: s.name,
           extraPoints: s.extraPoints || 0,
+          boletimReleased: s.boletimReleased ?? false,
           sumGrades: 0,
           activitiesCount: 0,
           grades: []
@@ -265,6 +266,7 @@ export async function registerRoutes(
           studentId: s.studentId,
           studentName: s.studentName,
           extraPoints: s.extraPoints,
+          boletimReleased: s.boletimReleased,
           totalPoints,
           activitiesCount: s.activitiesCount,
           grades: s.grades,
@@ -414,6 +416,18 @@ export async function registerRoutes(
       res.json(updated);
     } catch (err) {
       res.status(500).json({ message: "Failed to update points" });
+    }
+  });
+
+  app.patch("/api/students/:id/boletim", requireAuth, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const { released } = req.body;
+      if (typeof released !== "boolean") return res.status(400).json({ message: "Campo 'released' deve ser boolean" });
+      await storage.releaseBoletim(id, released);
+      res.json({ success: true, released });
+    } catch (err) {
+      res.status(500).json({ message: "Erro ao atualizar liberação do boletim" });
     }
   });
 

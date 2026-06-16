@@ -1,9 +1,11 @@
-// Irrelevant change: added comment for push test
-import { Trophy, Medal, Award, Search, Filter, UserCog } from "lucide-react";
+import { Trophy, Medal, Award, Search, UserCog, FileCheck, FileX } from "lucide-react";
 import { EditableGrade } from "./EditableGrade";
 import { useState } from "react";
 import { StudentActionModal } from "./StudentActionModal";
 import { Link } from "wouter";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { api } from "@shared/routes";
+import { useMutation } from "@tanstack/react-query";
 
 interface RankingData {
   studentId: number;
@@ -12,6 +14,7 @@ interface RankingData {
   totalPoints: number;
   activitiesCount: number;
   position: number;
+  boletimReleased?: boolean;
   grades: {
     activityId: number;
     activityName: string;
@@ -29,6 +32,15 @@ interface RankingsTableProps {
 export function RankingsTable({ rankings, activities, readonly = false }: RankingsTableProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState<RankingData | null>(null);
+
+  const releaseMutation = useMutation({
+    mutationFn: async ({ studentId, released }: { studentId: number; released: boolean }) => {
+      await apiRequest("PATCH", `/api/students/${studentId}/boletim`, { released });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.dashboard.path] });
+    },
+  });
 
   const filteredRankings = rankings.filter(r =>
     r.studentName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -192,13 +204,26 @@ export function RankingsTable({ rankings, activities, readonly = false }: Rankin
 
                   {!readonly && (
                     <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => setSelectedStudent(student)}
-                        className="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors"
-                        title="Ações do Aluno"
-                      >
-                        <UserCog className="w-5 h-5" />
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        <button
+                          onClick={() => releaseMutation.mutate({ studentId: student.studentId, released: !student.boletimReleased })}
+                          disabled={releaseMutation.isPending}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${student.boletimReleased ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                          title={student.boletimReleased ? "Boletim liberado — clique para bloquear" : "Liberar boletim para o aluno"}
+                          data-testid={`button-boletim-${student.studentId}`}
+                        >
+                          {student.boletimReleased ? <FileCheck className="w-3.5 h-3.5" /> : <FileX className="w-3.5 h-3.5" />}
+                          {student.boletimReleased ? "Liberado" : "Liberar"}
+                        </button>
+                        <button
+                          onClick={() => setSelectedStudent(student)}
+                          className="p-2 hover:bg-primary/10 rounded-lg text-primary transition-colors"
+                          title="Ações do Aluno"
+                          data-testid={`button-actions-${student.studentId}`}
+                        >
+                          <UserCog className="w-5 h-5" />
+                        </button>
+                      </div>
                     </td>
                   )}
                 </tr>

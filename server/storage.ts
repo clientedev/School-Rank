@@ -32,6 +32,9 @@ export interface IStorage {
   getStudentLogs(studentId: number): Promise<any[]>;
   resetAllXP(): Promise<void>;
 
+  // Boletim
+  releaseBoletim(studentId: number, released: boolean): Promise<void>;
+
   // Activities
   getActivityByName(name: string, classId: number): Promise<Activity | undefined>;
   createActivity(activity: InsertActivity): Promise<Activity>;
@@ -158,6 +161,10 @@ export class MemStorage implements IStorage {
   async resetAllXP(): Promise<void> {
     Array.from(this.students.values()).forEach(s => s.extraPoints = 0);
     this.studentLogs = [];
+  }
+  async releaseBoletim(studentId: number, released: boolean): Promise<void> {
+    const s = this.students.get(studentId);
+    if (s) this.students.set(studentId, { ...s, boletimReleased: released });
   }
 
   async createActivity(a: InsertActivity): Promise<Activity> {
@@ -419,6 +426,9 @@ export class DatabaseStorage implements IStorage {
       await tx.update(students).set({ extraPoints: 0 });
       await tx.delete(studentLogs);
     });
+  }
+  async releaseBoletim(studentId: number, released: boolean): Promise<void> {
+    await db.update(students).set({ boletimReleased: released }).where(eq(students.id, studentId));
   }
 
   async getActivityByName(name: string, classId: number): Promise<Activity | undefined> {

@@ -288,19 +288,32 @@ export default function StudentProfile() {
       <div className="max-w-5xl mx-auto space-y-6">
 
         {/* Action bar */}
-        <div className="flex justify-end">
-          <button
-            onClick={handleBoletim}
-            data-testid="button-gerar-boletim"
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all"
-            style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}
-            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.2)")}
-            onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
-          >
-            <FileText className="w-4 h-4" />
-            Gerar Boletim
-          </button>
-        </div>
+        {student.boletimReleased ? (
+          <div className="flex justify-end">
+            <button
+              onClick={handleBoletim}
+              data-testid="button-gerar-boletim"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm transition-all"
+              style={{ background: "rgba(255,255,255,0.1)", color: "#fff", border: "1px solid rgba(255,255,255,0.2)" }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.2)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
+            >
+              <FileText className="w-4 h-4" />
+              Gerar Boletim
+            </button>
+          </div>
+        ) : (
+          <div className="flex justify-end">
+            <div
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm"
+              style={{ background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.35)", border: "1px solid rgba(255,255,255,0.1)", cursor: "not-allowed" }}
+              title="O professor ainda não liberou o boletim"
+            >
+              <FileText className="w-4 h-4" />
+              Boletim não liberado
+            </div>
+          </div>
+        )}
 
         {/* Hero Card */}
         <div

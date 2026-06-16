@@ -21,6 +21,7 @@ export const api = {
           totalPoints: z.number(),
           activitiesCount: z.number(),
           position: z.number(),
+          boletimReleased: z.boolean().optional(),
           grades: z.array(z.object({
             activityId: z.number(),
             activityName: z.string(),
