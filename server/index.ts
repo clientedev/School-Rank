@@ -62,6 +62,17 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Run startup migrations to ensure schema is up to date
+  try {
+    const { pool } = await import("./db");
+    if (pool) {
+      await pool.query(`ALTER TABLE students ADD COLUMN IF NOT EXISTS boletim_released boolean DEFAULT false NOT NULL`);
+      console.log("[migration] boletim_released column ensured");
+    }
+  } catch (e: any) {
+    console.warn("[migration] Could not apply startup migration:", e.message);
+  }
+
   await registerRoutes(httpServer, app);
 
 
