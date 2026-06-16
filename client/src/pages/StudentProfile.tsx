@@ -85,17 +85,18 @@ export default function StudentProfile() {
         <td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;color:#555;font-weight:500;">Nota ${i + 1}</td>
         <td style="padding:10px 14px;border-bottom:1px solid #f0f0f0;text-align:center;">
           <span style="display:inline-block;padding:4px 14px;border-radius:20px;font-weight:700;font-size:15px;
-            background:${g.value >= 7 ? '#e8f5e9' : g.value >= 5 ? '#fff8e1' : '#ffebee'};
-            color:${g.value >= 7 ? '#2e7d32' : g.value >= 5 ? '#f57f17' : '#c62828'};">
+            background:${g.value >= 70 ? '#e8f5e9' : g.value >= 50 ? '#fff8e1' : '#ffebee'};
+            color:${g.value >= 70 ? '#2e7d32' : g.value >= 50 ? '#f57f17' : '#c62828'};">
             ${Number(g.value).toFixed(1)}
           </span>
         </td>
       </tr>`).join('');
 
     const avg = student.average ?? 0;
-    const avgColor = avg >= 7 ? '#2e7d32' : avg >= 5 ? '#f57f17' : '#c62828';
-    const avgBg = avg >= 7 ? '#e8f5e9' : avg >= 5 ? '#fff8e1' : '#ffebee';
-    const situation = avg >= 7 ? 'APROVADO(A)' : avg >= 5 ? 'EM RECUPERAÇÃO' : 'REPROVADO(A)';
+    const approved = avg >= 50;
+    const avgColor = approved ? '#2e7d32' : '#c62828';
+    const avgBg = approved ? '#e8f5e9' : '#ffebee';
+    const situation = approved ? 'APROVADO(A)' : 'CONSELHO DE CLASSE';
 
     printWindow.document.write(`<!DOCTYPE html>
 <html lang="pt-BR">
@@ -182,7 +183,10 @@ export default function StudentProfile() {
       </div>
       <div style="display:flex;align-items:center;gap:16px;">
         <div class="avg-value">${avg.toFixed(2)}</div>
-        <div class="situation">${situation}</div>
+        <div style="text-align:center;">
+          <div class="situation">${situation}</div>
+          ${!approved ? `<div style="font-size:11px;font-weight:700;color:#c62828;margin-top:5px;">Converse com o professor</div>` : ''}
+        </div>
       </div>
     </div>
 
