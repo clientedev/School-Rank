@@ -7,7 +7,7 @@ const { Pool } = pg;
 export let pool: any = null;
 export let db: any = null;
 
-const connectionString = process.env.RAILWAY_DATABASE_URL || process.env.DATABASE_URL;
+const connectionString = process.env.DATABASE_URL;
 
 if (connectionString) {
   const isInternal =
